@@ -38,7 +38,9 @@ class _AppNavigatorState extends State<AppNavigator> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthProvider>().checkAuth();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().checkAuth();
+    });
   }
 
   @override
