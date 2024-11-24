@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/providers/auth_provider.dart';
-import 'package:toki_app/screens/register_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatelessWidget {
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,21 +11,21 @@ class LoginScreen extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [LoginForm()],
+          children: [RegisterForm()],
         ),
       ),
     );
   }
 }
 
-class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+class RegisterForm extends StatefulWidget {
+  const RegisterForm({super.key});
 
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  State<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _RegisterFormState extends State<RegisterForm> {
   final _loginFormKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
@@ -39,7 +38,7 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             children: [
               Text(
-                "Welcome back !",
+                "Create your account",
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               SizedBox(height: 48),
@@ -47,33 +46,64 @@ class _LoginFormState extends State<LoginForm> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   filled: true,
-                  prefixIcon: Icon(Icons.email_outlined),
-                  labelText: "Email",
+                  prefixIcon: Icon(Icons.account_circle),
+                  labelText: "Full name",
                 ),
                 validator: (value) => (value == null || value.isEmpty)
-                    ? "Please enter your email"
+                    ? "Please enter your full name"
                     : null,
               ),
               SizedBox(height: 16),
               TextFormField(
-                obscureText: _obscurePassword,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                    filled: true,
-                    prefixIcon: Icon(Icons.lock_outline),
-                    labelText: "Password",
-                    suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                        icon: _obscurePassword
-                            ? Icon(Icons.visibility)
-                            : Icon(Icons.visibility_off))),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? "Please enter your password"
-                    : null,
+                  filled: true,
+                  prefixIcon: Icon(Icons.email_outlined),
+                  labelText: "Email",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter your email";
+                  }
+
+                  final emailRegex =
+                      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return "Enter a valid email address";
+                  }
+
+                  return null;
+                },
               ),
+              SizedBox(height: 16),
+              TextFormField(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                      filled: true,
+                      prefixIcon: Icon(Icons.lock_outline),
+                      labelText: "Password",
+                      suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                          icon: _obscurePassword
+                              ? Icon(Icons.visibility)
+                              : Icon(Icons.visibility_off))),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter your password";
+                    }
+
+                    final passwordRegex = RegExp(
+                        r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[A-Za-z])[A-Za-z\d!@#$%^&*]{8,}$');
+                    if (!passwordRegex.hasMatch(value)) {
+                      return "Password must be at least 8 characters, include a number, and a special character";
+                    }
+
+                    return null;
+                  }),
               SizedBox(height: 24),
               Row(children: [
                 Expanded(
@@ -82,7 +112,7 @@ class _LoginFormState extends State<LoginForm> {
                       if (_loginFormKey.currentState!.validate())
                         context.read<AuthProvider>().login()
                     },
-                    child: Text("Sign in"),
+                    child: Text("Sign up"),
                   ),
                 ),
               ]),
@@ -93,7 +123,7 @@ class _LoginFormState extends State<LoginForm> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      "Or sign in with",
+                      "Or sign up with",
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                   ),
@@ -114,7 +144,7 @@ class _LoginFormState extends State<LoginForm> {
                         height: 24,
                         width: 24,
                       ),
-                      label: Text("Sign in with Google"),
+                      label: Text("Sign up with Google"),
                     ),
                   ),
                 ],
@@ -123,17 +153,12 @@ class _LoginFormState extends State<LoginForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Don't have an account?"),
+                  Text("Already have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RegisterScreen(),
-                        ),
-                      );
+                      Navigator.pop(context);
                     },
-                    child: Text("Sign up"),
+                    child: Text("Sign in"),
                   ),
                 ],
               )
