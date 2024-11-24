@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Home screen"),
+        title: Text('Home screen'),
       ),
       body: Center(
         child: Column(
@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
             Text('Welcome to toki app user!'),
             ElevatedButton(
               onPressed: () => {context.read<AuthProvider>().logout()},
-              child: Text("logout"),
+              child: Text('logout'),
             )
           ],
         ),

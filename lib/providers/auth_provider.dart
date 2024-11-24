@@ -1,27 +1,26 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:toki_app/services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
+  final AuthService authService;
+
+  AuthProvider({required this.authService});
+
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
-  void checkAuth() {
-    if (_isAuthenticated) {
-      log("user is authenticated");
-    } else {
-      log("user is not authenticated");
-    }
-    notifyListeners();
+  Future<void> login(String email, String password) async {
+    await authService.login(email, password);
+    await notifyAuth();
   }
 
-  void login() {
-    _isAuthenticated = true;
-    notifyListeners();
+  Future<void> logout() async {
+    await authService.logout();
+    await notifyAuth();
   }
 
-  void logout() {
-    _isAuthenticated = false;
+  Future<void> notifyAuth() async {
+    _isAuthenticated = await authService.isAuthenticated();
     notifyListeners();
   }
 }

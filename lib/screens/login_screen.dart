@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/main.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/screens/register_screen.dart';
 
@@ -27,19 +29,22 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  final _loginFormKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
     return Form(
-        key: _loginFormKey,
+        key: _formKey,
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
               Text(
-                "Welcome back !",
+                'Welcome back !',
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               SizedBox(height: 48),
@@ -48,10 +53,11 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                   filled: true,
                   prefixIcon: Icon(Icons.email_outlined),
-                  labelText: "Email",
+                  labelText: 'Email',
                 ),
+                controller: _emailController,
                 validator: (value) => (value == null || value.isEmpty)
-                    ? "Please enter your email"
+                    ? 'Please enter your email'
                     : null,
               ),
               SizedBox(height: 16),
@@ -60,7 +66,7 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                     filled: true,
                     prefixIcon: Icon(Icons.lock_outline),
-                    labelText: "Password",
+                    labelText: 'Password',
                     suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
@@ -70,19 +76,29 @@ class _LoginFormState extends State<LoginForm> {
                         icon: _obscurePassword
                             ? Icon(Icons.visibility)
                             : Icon(Icons.visibility_off))),
+                controller: _passwordController,
                 validator: (value) => (value == null || value.isEmpty)
-                    ? "Please enter your password"
+                    ? 'Please enter your password'
                     : null,
               ),
               SizedBox(height: 24),
               Row(children: [
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => {
-                      if (_loginFormKey.currentState!.validate())
-                        context.read<AuthProvider>().login()
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final email = _emailController.text.trim();
+                        final password = _passwordController.text.trim();
+
+                        try {
+                          final authProvider = context.read<AuthProvider>();
+                          await authProvider.login(email, password);
+                        } on InvalidCredentials catch (e) {
+                          showGlobalSnackBar(e.toString());
+                        }
+                      }
                     },
-                    child: Text("Sign in"),
+                    child: Text('Sign in'),
                   ),
                 ),
               ]),
@@ -93,7 +109,7 @@ class _LoginFormState extends State<LoginForm> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      "Or sign in with",
+                      'Or sign in with',
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                   ),
@@ -110,11 +126,11 @@ class _LoginFormState extends State<LoginForm> {
                         backgroundColor: Colors.white,
                       ),
                       icon: Image.asset(
-                        "assets/google_logo.png",
+                        'assets/google_logo.png',
                         height: 24,
                         width: 24,
                       ),
-                      label: Text("Sign in with Google"),
+                      label: Text('Sign in with Google'),
                     ),
                   ),
                 ],
@@ -133,7 +149,7 @@ class _LoginFormState extends State<LoginForm> {
                         ),
                       );
                     },
-                    child: Text("Sign up"),
+                    child: Text('Sign up'),
                   ),
                 ],
               )

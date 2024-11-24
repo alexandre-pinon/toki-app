@@ -26,19 +26,19 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
-  final _loginFormKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
     return Form(
-        key: _loginFormKey,
+        key: _formKey,
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
               Text(
-                "Create your account",
+                'Create your account',
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               SizedBox(height: 48),
@@ -47,10 +47,10 @@ class _RegisterFormState extends State<RegisterForm> {
                 decoration: InputDecoration(
                   filled: true,
                   prefixIcon: Icon(Icons.account_circle),
-                  labelText: "Full name",
+                  labelText: 'Full name',
                 ),
                 validator: (value) => (value == null || value.isEmpty)
-                    ? "Please enter your full name"
+                    ? 'Please enter your full name'
                     : null,
               ),
               SizedBox(height: 16),
@@ -59,17 +59,17 @@ class _RegisterFormState extends State<RegisterForm> {
                 decoration: InputDecoration(
                   filled: true,
                   prefixIcon: Icon(Icons.email_outlined),
-                  labelText: "Email",
+                  labelText: 'Email',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter your email";
+                    return 'Please enter your email';
                   }
 
                   final emailRegex =
                       RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                   if (!emailRegex.hasMatch(value)) {
-                    return "Enter a valid email address";
+                    return 'Enter a valid email address';
                   }
 
                   return null;
@@ -81,7 +81,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   decoration: InputDecoration(
                       filled: true,
                       prefixIcon: Icon(Icons.lock_outline),
-                      labelText: "Password",
+                      labelText: 'Password',
                       suffixIcon: IconButton(
                           onPressed: () {
                             setState(() {
@@ -93,13 +93,13 @@ class _RegisterFormState extends State<RegisterForm> {
                               : Icon(Icons.visibility_off))),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return "Please enter your password";
+                      return 'Please enter your password';
                     }
 
                     final passwordRegex = RegExp(
                         r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[A-Za-z])[A-Za-z\d!@#$%^&*]{8,}$');
                     if (!passwordRegex.hasMatch(value)) {
-                      return "Password must be at least 8 characters, include a number, and a special character";
+                      return 'Password must be at least 8 characters, include a number, and a special character';
                     }
 
                     return null;
@@ -108,11 +108,8 @@ class _RegisterFormState extends State<RegisterForm> {
               Row(children: [
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => {
-                      if (_loginFormKey.currentState!.validate())
-                        context.read<AuthProvider>().login()
-                    },
-                    child: Text("Sign up"),
+                    onPressed: () {},
+                    child: Text('Sign up'),
                   ),
                 ),
               ]),
@@ -123,7 +120,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      "Or sign up with",
+                      'Or sign up with',
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                   ),
@@ -140,11 +137,11 @@ class _RegisterFormState extends State<RegisterForm> {
                         backgroundColor: Colors.white,
                       ),
                       icon: Image.asset(
-                        "assets/google_logo.png",
+                        'assets/google_logo.png',
                         height: 24,
                         width: 24,
                       ),
-                      label: Text("Sign up with Google"),
+                      label: Text('Sign up with Google'),
                     ),
                   ),
                 ],
@@ -153,12 +150,12 @@ class _RegisterFormState extends State<RegisterForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Already have an account?"),
+                  Text('Already have an account?'),
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: Text("Sign in"),
+                    child: Text('Sign in'),
                   ),
                 ],
               )
