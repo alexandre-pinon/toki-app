@@ -31,6 +31,25 @@ class AuthService {
     }
   }
 
+  Future<void> register(String fullName, String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/register'),
+      headers: {'Content-type': 'application/json'},
+      body: jsonEncode(
+        {'name': fullName, 'email': email, 'password': password},
+      ),
+    );
+
+    switch (response.statusCode) {
+      case 201:
+        return;
+      case 409:
+        throw EmailAlreadyExist();
+      default:
+        throw Exception('Register failed');
+    }
+  }
+
   Future<void> logout() async {
     await tokenRepository.clearTokens();
   }

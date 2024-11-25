@@ -1,10 +1,21 @@
-class InvalidCredentials extends Error {
-  static const message = 'Invalid email or password';
+class AuthError extends Error {
+  final String message;
 
-  InvalidCredentials();
+  AuthError(this.message);
 
   @override
   String toString() {
     return message;
   }
+}
+
+class InvalidCredentials extends AuthError {
+  InvalidCredentials() : super('Invalid email or password');
+}
+
+class EmailAlreadyExist extends AuthError {
+  EmailAlreadyExist()
+      : super(
+          'An account with this email already exist, please choose another',
+        );
 }

@@ -50,7 +50,7 @@ void showGlobalSnackBar(String message) {
         ),
       ),
       backgroundColor: Colors.red.shade100,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 5),
     ),
   );
 }
