@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/app.dart';
 import 'package:toki_app/providers/auth_provider.dart';
+import 'package:toki_app/providers/planned_meal_provider.dart';
 import 'package:toki_app/repositories/token_repository.dart';
 import 'package:toki_app/services/auth_service.dart';
+import 'package:toki_app/services/planned_meal_service.dart';
 
 //TODO: define as env variable
 const TOKI_API_URL = 'http://192.168.1.17:3000';
@@ -32,8 +34,18 @@ void initApp() {
   final tokenRepository = TokenRepository();
   final authService = AuthService(
       baseUrl: '$TOKI_API_URL/auth', tokenRepository: tokenRepository);
-  final app = ChangeNotifierProvider(
-    create: (context) => AuthProvider(authService: authService),
+  final plannedMealService = PlannedMealService(
+      baseUrl: '$TOKI_API_URL/planned-meals', tokenRepository: tokenRepository);
+  final app = MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (context) => AuthProvider(authService: authService),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => PlannedMealProvider(plannedMealService),
+      ),
+      Provider(create: (context) => plannedMealService)
+    ],
     child: TokiApp(scaffoldMessengerKey: scaffoldMessengerKey),
   );
 
