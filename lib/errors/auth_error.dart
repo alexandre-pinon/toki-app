@@ -19,3 +19,7 @@ class EmailAlreadyExist extends AuthError {
           'An account with this email already exist, please choose another',
         );
 }
+
+class Unauthenticated extends AuthError {
+  Unauthenticated() : super('Your session has expired');
+}

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/repositories/token_repository.dart';
 
@@ -16,7 +17,7 @@ class PlannedMealService {
   ) async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {
-      return [];
+      throw Unauthenticated();
     }
 
     final queryParameters = {
@@ -32,8 +33,8 @@ class PlannedMealService {
       throw Exception('Fetch weekly planned meals failed');
     }
 
-    final List<dynamic> responseBody = jsonDecode(response.body);
+    final List<dynamic> jsonList = jsonDecode(response.body);
 
-    return responseBody.map(PlannedMeal.fromJson).toList();
+    return jsonList.map(PlannedMeal.fromJson).toList();
   }
 }

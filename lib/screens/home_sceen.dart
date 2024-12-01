@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/main.dart';
 import 'package:toki_app/models/planned_meal.dart';
+import 'package:toki_app/screens/login_screen.dart';
+import 'package:toki_app/screens/meal_screen.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/weekday.dart';
@@ -30,7 +34,18 @@ class HomeScreen extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Error: $snapshot.error'));
+            if (snapshot.error is Unauthenticated) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showGlobalSnackBar(snapshot.error.toString());
+              });
+            }
+
+            return Center(child: CircularProgressIndicator());
           }
 
           final mealsByDay = groupBy(snapshot.data!, (meal) => meal.mealDate);
@@ -76,6 +91,12 @@ class DayMeals extends StatelessWidget {
                   ),
                   title: Text(meal.title),
                   subtitle: Text(meal.mealType.displayName),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MealScreen(meal)),
+                    );
+                  },
                 ),
               ),
             ),
