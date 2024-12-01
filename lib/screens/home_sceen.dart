@@ -12,16 +12,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    DateTime startOfWeek = DateTime(now.year, now.month, now.day).subtract(
-      Duration(days: now.weekday - DateTime.monday),
-    );
-    DateTime endOfWeek = DateTime(
-      startOfWeek.year,
-      startOfWeek.month,
-      startOfWeek.day,
-    ).add(
-      Duration(days: 6),
-    );
+    DateTime from = DateTime.utc(now.year, now.month, now.day);
+    DateTime to = from.add(Duration(days: 6));
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +23,7 @@ class HomeScreen extends StatelessWidget {
       body: FutureBuilder(
         future: context
             .read<PlannedMealService>()
-            .fetchWeeklyPlannedMeals(startOfWeek, endOfWeek),
+            .fetchWeeklyPlannedMeals(from, to),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -41,16 +33,16 @@ class HomeScreen extends StatelessWidget {
             return Center(child: Text('Error: $snapshot.error'));
           }
 
-          final mealsByDay = groupBy(
-            snapshot.data!,
-            (meal) => WeekdayExtension.fromDatetimeWeekday(
-              meal.mealDate.weekday,
-            ),
-          );
+          final mealsByDay = groupBy(snapshot.data!, (meal) => meal.mealDate);
           return ListView(
             children: mealsByDay.entries
-                .sortedBy((entry) => entry.key)
-                .map((entry) => DayMeals(day: entry.key, meals: entry.value))
+                .sortedBy((entry) => entry.key) // by meal date
+                .map((entry) => DayMeals(
+                      day: WeekdayExtension.fromDatetimeWeekday(
+                        entry.key.weekday,
+                      ),
+                      meals: entry.value,
+                    ))
                 .toList(),
           );
         },

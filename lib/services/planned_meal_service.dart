@@ -19,13 +19,12 @@ class PlannedMealService {
       return [];
     }
 
+    final queryParameters = {
+      'start_date': from.toIso8601String(),
+      'end_date': to.toIso8601String(),
+    };
     final response = await http.get(
-      Uri.parse(baseUrl).replace(
-        queryParameters: {
-          'start_date': from.toString(),
-          'end_date': to.toString(),
-        },
-      ),
+      Uri.parse(baseUrl).replace(queryParameters: queryParameters),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
 
