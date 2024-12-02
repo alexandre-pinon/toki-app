@@ -66,9 +66,12 @@ class MealScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16),
-              RecipeHeader(recipe),
+              RecipeHeader(meal: meal, recipe: recipe),
               SizedBox(height: 16),
-              RecipeIngredients(ingredients),
+              RecipeIngredients(
+                ingredients: ingredients,
+                quantityRatio: meal.servings / recipe.servings,
+              ),
               SizedBox(height: 16),
               RecipeInstructions(instructions),
             ],
@@ -80,9 +83,10 @@ class MealScreen extends StatelessWidget {
 }
 
 class RecipeHeader extends StatelessWidget {
+  final PlannedMeal meal;
   final Recipe recipe;
 
-  const RecipeHeader(this.recipe, {super.key});
+  const RecipeHeader({super.key, required this.meal, required this.recipe});
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +119,8 @@ class RecipeHeader extends StatelessWidget {
         ),
         ListTile(
           leading: Icon(Icons.restaurant_menu),
-          title: Text('Servings: ${recipe.servings}'),
+          title: Text('Servings: ${meal.servings}'),
+          subtitle: Text('Recipe servings: ${recipe.servings}'),
         )
       ],
     );
@@ -124,8 +129,13 @@ class RecipeHeader extends StatelessWidget {
 
 class RecipeIngredients extends StatelessWidget {
   final List<Ingredient> ingredients;
+  final double quantityRatio;
 
-  const RecipeIngredients(this.ingredients, {super.key});
+  const RecipeIngredients({
+    super.key,
+    required this.ingredients,
+    required this.quantityRatio,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +153,13 @@ class RecipeIngredients extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: ingredients
-              .map((ingredient) => RecipeIngredient(ingredient))
+              .map((ingredient) => RecipeIngredient(
+                    name: ingredient.name,
+                    unit: ingredient.unit,
+                    quantity: ingredient.quantity != null
+                        ? ingredient.quantity! * quantityRatio
+                        : null,
+                  ))
               .toList(),
         ),
       ],
@@ -152,9 +168,28 @@ class RecipeIngredients extends StatelessWidget {
 }
 
 class RecipeIngredient extends StatelessWidget {
-  final Ingredient ingredient;
+  final String name;
+  final UnitType? unit;
+  final double? quantity;
 
-  const RecipeIngredient(this.ingredient, {super.key});
+  const RecipeIngredient({
+    super.key,
+    required this.name,
+    this.unit,
+    this.quantity,
+  });
+
+  String formatName(String name, UnitType? unit, double? quantity) {
+    if (quantity != null && quantity > 1 && unit == null) {
+      return '${name}s';
+    }
+
+    return name;
+  }
+
+  String formatUnit(String? unit) {
+    return unit != null ? '$unit ' : '';
+  }
 
   String formatQuantity(double? quantity) {
     if (quantity == null) return '';
@@ -164,29 +199,15 @@ class RecipeIngredient extends StatelessWidget {
         : quantity.toString();
   }
 
-  String formatUnit(String? unit) {
-    return unit != null ? '$unit ' : '';
-  }
-
-  String formatName(Ingredient ingredient) {
-    final Ingredient(quantity: quantity, unit: unit, name: name) = ingredient;
-
-    if (quantity != null && quantity > 1 && unit == null) {
-      return '${name}s';
-    }
-
-    return name;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final quantity = formatQuantity(ingredient.quantity);
-    final unit = formatUnit(ingredient.unit?.displayName);
-    final name = formatName(ingredient);
+    final formattedName = formatName(name, unit, quantity);
+    final formattedUnit = formatUnit(unit?.displayName);
+    final formattedQuantity = formatQuantity(quantity);
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      child: Text('• $quantity $unit$name'),
+      child: Text('• $formattedQuantity $formattedUnit$formattedName'),
     );
   }
 }
