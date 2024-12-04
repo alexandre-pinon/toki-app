@@ -7,7 +7,7 @@ class PlannedMeal {
   final DateTime mealDate;
   final MealType mealType;
   final int servings;
-  final String title;
+  final String? title;
   final String? imageUrl;
 
   PlannedMeal(
@@ -25,9 +25,10 @@ class PlannedMeal {
       : id = json['id'],
         userId = json['user_id'],
         recipeId = json['recipe_id'],
-        mealDate = DateTime.parse(json['meal_date']),
+        mealDate = DateTime.parse(json['meal_date'])
+            .copyWith(isUtc: true), // force date parse as UTC
         mealType = MealTypeExtension.fromString(json['meal_type']),
         servings = json['servings'],
-        title = json['recipe']['title'],
-        imageUrl = json['recipe']['image_url'];
+        title = json['recipe'] != null ? json['recipe']['title'] : null,
+        imageUrl = json['recipe'] != null ? json['recipe']['image_url'] : null;
 }

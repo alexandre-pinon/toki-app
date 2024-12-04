@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/main.dart';
 import 'package:toki_app/models/planned_meal.dart';
+import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/screens/login_screen.dart';
 import 'package:toki_app/screens/meal_screen.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
@@ -35,14 +36,9 @@ class HomeScreen extends StatelessWidget {
 
           if (snapshot.hasError) {
             if (snapshot.error is Unauthenticated) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
+              context.read<AuthProvider>().logout();
             } else {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                showGlobalSnackBar(snapshot.error.toString());
-              });
+              showGlobalSnackBar(snapshot.error.toString());
             }
 
             return Center(child: CircularProgressIndicator());
@@ -89,7 +85,7 @@ class DayMeals extends StatelessWidget {
                       meal.imageUrl ?? 'https://placehold.co/64.png',
                     ),
                   ),
-                  title: Text(meal.title),
+                  title: Text(meal.title ?? 'Meal'),
                   subtitle: Text(meal.mealType.displayName),
                   onTap: () {
                     Navigator.push(

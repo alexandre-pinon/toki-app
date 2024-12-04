@@ -29,12 +29,68 @@ class PlannedMealService {
       headers: {'Authorization': 'Bearer $accessToken'},
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Fetch weekly planned meals failed');
+    switch (response.statusCode) {
+      case 200:
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map(PlannedMeal.fromJson).toList();
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Fetch weekly planned meals failed');
+    }
+  }
+
+  Future<PlannedMeal> fetchPlannedMeal(String id) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
     }
 
-    final List<dynamic> jsonList = jsonDecode(response.body);
+    final response = await http.get(
+      Uri.parse('$baseUrl/$id'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
 
-    return jsonList.map(PlannedMeal.fromJson).toList();
+    switch (response.statusCode) {
+      case 200:
+        final dynamic json = jsonDecode(response.body);
+        return PlannedMeal.fromJson(json);
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Fetch planned meal $id failed');
+    }
+  }
+
+  Future<PlannedMeal> updatePlannedMeal(PlannedMeal meal) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final body = {
+      'recipe_id': meal.recipeId,
+      'meal_date': meal.mealDate.toIso8601String(),
+      'meal_type': meal.mealType.toString(),
+      'servings': meal.servings,
+    };
+    final response = await http.put(
+      Uri.parse('$baseUrl/${meal.id}'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      },
+      body: jsonEncode(body),
+    );
+
+    switch (response.statusCode) {
+      case 200:
+        final json = jsonDecode(response.body);
+        return PlannedMeal.fromJson(json);
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Update planned meal failed');
+    }
   }
 }

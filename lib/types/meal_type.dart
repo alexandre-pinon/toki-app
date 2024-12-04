@@ -5,6 +5,15 @@ enum MealType implements Comparable<MealType> {
 
   @override
   int compareTo(MealType other) => index - other.index;
+
+  @override
+  String toString() {
+    return switch (this) {
+      MealType.breakfast => 'breakfast',
+      MealType.lunch => 'lunch',
+      MealType.dinner => 'dinner'
+    };
+  }
 }
 
 extension StringExtension on MealType {
