@@ -3,48 +3,58 @@ import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/main.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
-import 'package:toki_app/screens/login_screen.dart';
+import 'package:toki_app/providers/meal_provider.dart';
+import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/meal_screen.dart';
-import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/weekday.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    DateTime now = DateTime.now();
-    DateTime from = DateTime.utc(now.year, now.month, now.day);
-    DateTime to = from.add(Duration(days: 6));
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
+      final authProvider = context.read<AuthProvider>();
+
+      try {
+        await weeklyMealsProvider.fetchMeals();
+      } on Unauthenticated {
+        await authProvider.logout();
+      } catch (error) {
+        showGlobalSnackBar(error.toString());
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Weekly meals'),
       ),
-      body: FutureBuilder(
-        future: context
-            .read<PlannedMealService>()
-            .fetchWeeklyPlannedMeals(from, to),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Builder(
+        builder: (context) {
+          final weeklyMealsProvider = context.watch<WeeklyMealsProvider>();
+
+          if (weeklyMealsProvider.loading) {
             return Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            if (snapshot.error is Unauthenticated) {
-              context.read<AuthProvider>().logout();
-            } else {
-              showGlobalSnackBar(snapshot.error.toString());
-            }
-
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final mealsByDay = groupBy(snapshot.data!, (meal) => meal.mealDate);
+          final mealsByDay = groupBy(
+            weeklyMealsProvider.meals,
+            (meal) => meal.mealDate,
+          );
           return ListView(
             children: mealsByDay.entries
                 .sortedBy((entry) => entry.key) // by meal date
@@ -64,7 +74,7 @@ class HomeScreen extends StatelessWidget {
 
 class DayMeals extends StatelessWidget {
   final Weekday day;
-  final List<PlannedMeal> meals;
+  final List<WeeklyPlannedMeal> meals;
 
   const DayMeals({super.key, required this.day, required this.meals});
 
@@ -77,7 +87,7 @@ class DayMeals extends StatelessWidget {
         ),
         ...meals.sortedBy((meal) => meal.mealType).map(
               (meal) => Card(
-                margin: EdgeInsets.symmetric(horizontal: 8.0),
+                margin: EdgeInsets.all(8.0),
                 child: ListTile(
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
@@ -85,9 +95,10 @@ class DayMeals extends StatelessWidget {
                       meal.imageUrl ?? 'https://placehold.co/64.png',
                     ),
                   ),
-                  title: Text(meal.title ?? 'Meal'),
+                  title: Text(meal.title),
                   subtitle: Text(meal.mealType.displayName),
                   onTap: () {
+                    context.read<MealProvider>().resetData();
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => MealScreen(meal)),

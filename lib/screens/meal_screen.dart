@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/main.dart';
 import 'package:toki_app/models/ingredient.dart';
 import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/planned_meal.dart';
@@ -7,13 +8,14 @@ import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/unit_type.dart';
 
 class MealScreen extends StatefulWidget {
-  final PlannedMeal meal;
+  final WeeklyPlannedMeal weeklyMeal;
 
-  const MealScreen(this.meal, {super.key});
+  const MealScreen(this.weeklyMeal, {super.key});
 
   @override
   State<MealScreen> createState() => _MealScreenState();
@@ -23,27 +25,39 @@ class _MealScreenState extends State<MealScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final mealProvider = context.read<MealProvider>();
-      await Future.wait([
-        mealProvider.fetchMeal(widget.meal.id),
-        mealProvider.fetchRecipe(widget.meal.recipeId)
-      ]);
+    Future.microtask(() async {
+      _initializeData();
     });
+  }
+
+  void _initializeData() async {
+    final mealProvider = context.read<MealProvider>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      await mealProvider.initData(
+        widget.weeklyMeal.id,
+        widget.weeklyMeal.recipeId,
+      );
+    } on Unauthenticated {
+      await authProvider.logout();
+    } catch (error) {
+      showGlobalSnackBar(error.toString());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final mealProvider = context.watch<MealProvider>();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.meal.title ?? 'Meal'),
+        title: Text(mealProvider.recipe?.title ?? widget.weeklyMeal.title),
       ),
       body: Builder(
         builder: (context) {
-          final mealProvider = context.watch<MealProvider>();
-
-          if (!mealProvider.isInitialized) {
+          if (!mealProvider.isInitialized || mealProvider.loading) {
             return Center(child: CircularProgressIndicator());
           }
 
@@ -52,7 +66,9 @@ class _MealScreenState extends State<MealScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: Image.network(
-                  widget.meal.imageUrl ?? 'https://placehold.co/400x200.png',
+                  mealProvider.recipe?.imageUrl ??
+                      widget.weeklyMeal.imageUrl ??
+                      'https://placehold.co/400x200.png',
                 ),
               ),
               SizedBox(height: 16),
@@ -132,24 +148,39 @@ class _RecipeHeaderState extends State<RecipeHeader> {
       return;
     }
 
-    final updatedMeal = PlannedMeal(
+    setState(() {
+      _isEditing = false;
+    });
+
+    final meal = PlannedMeal(
       widget.meal.id,
       widget.meal.userId,
       widget.meal.recipeId,
       widget.meal.mealDate,
       _mealTypeController.value,
       int.parse(_mealServingsController.text),
-      widget.meal.title,
-      widget.meal.imageUrl,
+    );
+    final recipe = Recipe(
+      widget.recipe.id,
+      widget.recipe.userId,
+      _titleController.text,
+      int.parse(_prepTimeController.text),
+      int.parse(_cookTimeController.text),
+      int.parse(_recipeServingsController.text),
+      widget.recipe.sourceUrl,
+      widget.recipe.imageUrl,
+      widget.recipe.cuisineType,
+      widget.recipe.rating,
     );
     final authProvider = context.read<AuthProvider>();
     final mealProvider = context.read<MealProvider>();
+    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
 
     try {
-      await mealProvider.updateMeal(updatedMeal);
-      setState(() {
-        _isEditing = false;
-      });
+      //! update recipe servings first to update shopping list items with correct quantities
+      await mealProvider.updateRecipe(recipe);
+      await mealProvider.updateMeal(meal);
+      await weeklyMealsProvider.fetchMeals(); // update parent UI
     } on Unauthenticated {
       await authProvider.logout();
     }

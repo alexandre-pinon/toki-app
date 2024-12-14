@@ -58,7 +58,12 @@ enum CuisineType {
   ghanaian,
   senegalese,
   tanzanian,
-  other,
+  other;
+
+  @override
+  String toString() {
+    return displayName;
+  }
 }
 
 extension StringExtension on CuisineType {

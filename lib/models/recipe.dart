@@ -38,4 +38,17 @@ class Recipe {
             ? CuisineTypeExtension.fromString(json['cuisine_type'])
             : null,
         rating = json['rating'];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'prep_time': prepTime,
+      'cook_time': cookTime,
+      'servings': servings,
+      'source_url': sourceUrl,
+      'image_url': imageUrl,
+      'cuisine_type': cuisineType.toString(),
+      'rating': rating,
+    };
+  }
 }

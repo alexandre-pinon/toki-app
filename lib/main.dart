@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:toki_app/app.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
+import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/repositories/token_repository.dart';
 import 'package:toki_app/services/auth_service.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
@@ -57,6 +58,9 @@ void initApp() {
           mealService: mealService,
           recipeService: recipeService,
         ),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => WeeklyMealsProvider(mealService: mealService),
       ),
       Provider(create: (context) => mealService),
     ],

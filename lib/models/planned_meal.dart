@@ -7,8 +7,6 @@ class PlannedMeal {
   final DateTime mealDate;
   final MealType mealType;
   final int servings;
-  final String? title;
-  final String? imageUrl;
 
   PlannedMeal(
     this.id,
@@ -17,8 +15,6 @@ class PlannedMeal {
     this.mealDate,
     this.mealType,
     this.servings,
-    this.title,
-    this.imageUrl,
   );
 
   PlannedMeal.fromJson(dynamic json)
@@ -28,7 +24,46 @@ class PlannedMeal {
         mealDate = DateTime.parse(json['meal_date'])
             .copyWith(isUtc: true), // force date parse as UTC
         mealType = MealTypeExtension.fromString(json['meal_type']),
-        servings = json['servings'],
-        title = json['recipe'] != null ? json['recipe']['title'] : null,
-        imageUrl = json['recipe'] != null ? json['recipe']['image_url'] : null;
+        servings = json['servings'];
+}
+
+class WeeklyPlannedMeal extends PlannedMeal {
+  final String title;
+  final String? imageUrl;
+
+  WeeklyPlannedMeal(
+    super.id,
+    super.userId,
+    super.recipeId,
+    super.mealDate,
+    super.mealType,
+    super.servings,
+    this.title,
+    this.imageUrl,
+  );
+
+  factory WeeklyPlannedMeal.fromJson(dynamic json) {
+    final meal = PlannedMeal.fromJson(json);
+    final title = json['recipe']['title'];
+    final imageUrl = json['recipe']['image_url'];
+
+    return WeeklyPlannedMeal.fromMeal(meal, title, imageUrl);
+  }
+
+  factory WeeklyPlannedMeal.fromMeal(
+    PlannedMeal meal,
+    String title,
+    String? imageUrl,
+  ) {
+    return WeeklyPlannedMeal(
+      meal.id,
+      meal.userId,
+      meal.recipeId,
+      meal.mealDate,
+      meal.mealType,
+      meal.servings,
+      title,
+      imageUrl,
+    );
+  }
 }

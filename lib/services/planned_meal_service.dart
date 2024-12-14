@@ -11,7 +11,7 @@ class PlannedMealService {
 
   PlannedMealService({required this.baseUrl, required this.tokenRepository});
 
-  Future<List<PlannedMeal>> fetchWeeklyPlannedMeals(
+  Future<List<WeeklyPlannedMeal>> fetchWeeklyPlannedMeals(
     DateTime from,
     DateTime to,
   ) async {
@@ -32,7 +32,7 @@ class PlannedMealService {
     switch (response.statusCode) {
       case 200:
         final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map(PlannedMeal.fromJson).toList();
+        return jsonList.map(WeeklyPlannedMeal.fromJson).toList();
       case 401:
         throw Unauthenticated();
       default:

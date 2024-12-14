@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/repositories/token_repository.dart';
 
@@ -29,5 +30,32 @@ class RecipeService {
     final json = jsonDecode(response.body);
 
     return RecipeDetails.fromJson(json);
+  }
+
+  Future<RecipeDetails> updateRecipe(Recipe recipe) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final body = {'recipe': recipe.toJson()};
+    final response = await http.put(
+      Uri.parse('$baseUrl/${recipe.id}'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      },
+      body: jsonEncode(body),
+    );
+
+    switch (response.statusCode) {
+      case 200:
+        final json = jsonDecode(response.body);
+        return RecipeDetails.fromJson(json);
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Update recipe failed');
+    }
   }
 }
