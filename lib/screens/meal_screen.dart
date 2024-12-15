@@ -349,7 +349,7 @@ class _RecipeHeaderState extends State<RecipeHeader> {
   }
 }
 
-class RecipeIngredients extends StatelessWidget {
+class RecipeIngredients extends StatefulWidget {
   final List<Ingredient> ingredients;
   final double quantityRatio;
 
@@ -360,29 +360,77 @@ class RecipeIngredients extends StatelessWidget {
   });
 
   @override
+  State<RecipeIngredients> createState() => _RecipeIngredientsState();
+}
+
+class _RecipeIngredientsState extends State<RecipeIngredients> {
+  final _formKey = GlobalKey<FormState>();
+  late final List<Ingredient> ingredients;
+
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ingredients = widget.ingredients;
+  }
+
+  void addIngredient() {
+    setState(() {
+      // removed ids ?
+      ingredients.add(Ingredient(id, recipeId, name, quantity, unit));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Ingredients',
-            style: Theme.of(context).textTheme.titleLarge,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Ingredients',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isEditing = true;
+                  });
+                },
+                icon: Icon(Icons.edit),
+              )
+            ],
           ),
         ),
         SizedBox(height: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: ingredients
-              .map((ingredient) => RecipeIngredient(
-                    name: ingredient.name,
-                    unit: ingredient.unit,
-                    quantity: ingredient.quantity != null
-                        ? ingredient.quantity! * quantityRatio
-                        : null,
-                  ))
-              .toList(),
+        Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: widget.ingredients
+                .map((ingredient) => _isEditing
+                    ? RecipeIngredient(
+                        name: ingredient.name,
+                        unit: ingredient.unit,
+                        quantity: ingredient.quantity != null
+                            ? ingredient.quantity! * widget.quantityRatio
+                            : null,
+                      )
+                    : RecipeIngredientInput(
+                        name: ingredient.name,
+                        unit: ingredient.unit,
+                        quantity: ingredient.quantity != null
+                            ? ingredient.quantity! * widget.quantityRatio
+                            : null,
+                      ))
+                .toList(),
+          ),
         ),
       ],
     );
@@ -418,7 +466,7 @@ class RecipeIngredient extends StatelessWidget {
 
     return quantity == quantity.roundToDouble()
         ? quantity.toStringAsFixed(0)
-        : quantity.toString();
+        : quantity.toStringAsFixed(1);
   }
 
   @override
@@ -430,6 +478,56 @@ class RecipeIngredient extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       child: Text('• $formattedQuantity $formattedUnit$formattedName'),
+    );
+  }
+}
+
+class RecipeIngredientInput extends StatefulWidget {
+  final String name;
+  final UnitType? unit;
+  final double? quantity;
+
+  const RecipeIngredientInput({
+    super.key,
+    required this.name,
+    this.unit,
+    this.quantity,
+  });
+
+  @override
+  State<RecipeIngredientInput> createState() => _RecipeIngredientInputState();
+}
+
+class _RecipeIngredientInputState extends State<RecipeIngredientInput> {
+  late final TextEditingController _nameController;
+  late final ValueNotifier<UnitType?> _unitController;
+  late final TextEditingController _quantityController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.name);
+    _unitController = ValueNotifier(widget.unit);
+    _quantityController = TextEditingController(
+      text: widget.quantity.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _unitController.dispose();
+    _quantityController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      child: Row(
+        children: [],
+      ),
     );
   }
 }
