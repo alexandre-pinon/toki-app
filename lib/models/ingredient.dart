@@ -17,4 +17,12 @@ class Ingredient {
         unit = json['unit'] != null
             ? UnitTypeExtension.fromString(json['unit'])
             : null;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'quantity': quantity,
+      'unit_type': unit.toString(),
+    };
+  }
 }

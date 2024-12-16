@@ -51,4 +51,24 @@ class Recipe {
       'rating': rating,
     };
   }
+
+  Recipe copyWith({
+    required String title,
+    int? prepTime,
+    int? cookTime,
+    required int servings,
+  }) {
+    return Recipe(
+      id,
+      userId,
+      title,
+      prepTime,
+      cookTime,
+      servings,
+      sourceUrl,
+      imageUrl,
+      cuisineType,
+      rating,
+    );
+  }
 }

@@ -5,12 +5,14 @@ import 'package:toki_app/models/ingredient.dart';
 import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/models/recipe.dart';
+import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:toki_app/providers/weekly_meals_provider.dart';
+import 'package:toki_app/screens/recipe_edit_screen.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/unit_type.dart';
+import 'package:toki_app/widgets/servings_input.dart';
 
 class MealScreen extends StatefulWidget {
   final WeeklyPlannedMeal weeklyMeal;
@@ -52,9 +54,23 @@ class _MealScreenState extends State<MealScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(mealProvider.recipe?.title ?? widget.weeklyMeal.title),
-      ),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(mealProvider.recipe?.title ?? widget.weeklyMeal.title),
+          actions: [
+            if (mealProvider.recipeDetails != null)
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          RecipeEditScreen(mealProvider.recipeDetails!),
+                    ),
+                  );
+                },
+                icon: Icon(Icons.edit),
+              )
+          ]),
       body: Builder(
         builder: (context) {
           if (!mealProvider.isInitialized || mealProvider.loading) {
@@ -75,10 +91,10 @@ class _MealScreenState extends State<MealScreen> {
               RecipeHeader(
                 meal: mealProvider.meal!,
                 recipe: mealProvider.recipe!,
+                recipeDetails: mealProvider.recipeDetails!,
               ),
               SizedBox(height: 16),
               RecipeIngredients(
-                recipeId: mealProvider.recipe!.id,
                 ingredients: mealProvider.ingredients,
                 quantityRatio:
                     mealProvider.meal!.servings / mealProvider.recipe!.servings,
@@ -96,95 +112,35 @@ class _MealScreenState extends State<MealScreen> {
 class RecipeHeader extends StatefulWidget {
   final PlannedMeal meal;
   final Recipe recipe;
+  final RecipeDetails recipeDetails;
 
-  const RecipeHeader({super.key, required this.meal, required this.recipe});
+  const RecipeHeader({
+    super.key,
+    required this.meal,
+    required this.recipe,
+    required this.recipeDetails,
+  });
 
   @override
   State<RecipeHeader> createState() => _RecipeHeaderState();
 }
 
 class _RecipeHeaderState extends State<RecipeHeader> {
-  final _formKey = GlobalKey<FormState>();
   late final ValueNotifier<MealType> _mealTypeController;
-  late final TextEditingController _mealServingsController;
-  late final TextEditingController _titleController;
-  late final TextEditingController _prepTimeController;
-  late final TextEditingController _cookTimeController;
-  late final TextEditingController _recipeServingsController;
-
-  bool _isEditing = false;
+  late final ValueNotifier<int> _servingsController;
 
   @override
   void initState() {
     super.initState();
     _mealTypeController = ValueNotifier(widget.meal.mealType);
-    _mealServingsController = TextEditingController(
-      text: widget.meal.servings.toString(),
-    );
-    _titleController = TextEditingController(text: widget.recipe.title);
-    _prepTimeController = TextEditingController(
-      text: widget.recipe.prepTime?.toString() ?? '',
-    );
-    _cookTimeController = TextEditingController(
-      text: widget.recipe.cookTime?.toString() ?? '',
-    );
-    _recipeServingsController = TextEditingController(
-      text: widget.recipe.servings.toString(),
-    );
+    _servingsController = ValueNotifier(widget.meal.servings);
   }
 
   @override
   void dispose() {
     _mealTypeController.dispose();
-    _mealServingsController.dispose();
-    _titleController.dispose();
-    _prepTimeController.dispose();
-    _cookTimeController.dispose();
-    _recipeServingsController.dispose();
+    _servingsController.dispose();
     super.dispose();
-  }
-
-  Future<void> saveChanges() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isEditing = false;
-    });
-
-    final meal = PlannedMeal(
-      widget.meal.id,
-      widget.meal.userId,
-      widget.meal.recipeId,
-      widget.meal.mealDate,
-      _mealTypeController.value,
-      int.parse(_mealServingsController.text),
-    );
-    final recipe = Recipe(
-      widget.recipe.id,
-      widget.recipe.userId,
-      _titleController.text,
-      int.parse(_prepTimeController.text),
-      int.parse(_cookTimeController.text),
-      int.parse(_recipeServingsController.text),
-      widget.recipe.sourceUrl,
-      widget.recipe.imageUrl,
-      widget.recipe.cuisineType,
-      widget.recipe.rating,
-    );
-    final authProvider = context.read<AuthProvider>();
-    final mealProvider = context.read<MealProvider>();
-    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-
-    try {
-      //! update recipe servings first to update shopping list items with correct quantities
-      await mealProvider.updateRecipe(recipe);
-      await mealProvider.updateMeal(meal);
-      await weeklyMealsProvider.fetchMeals(); // update parent UI
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
   }
 
   @override
@@ -192,223 +148,6 @@ class _RecipeHeaderState extends State<RecipeHeader> {
     final Recipe(prepTime: prepTime, cookTime: cookTime) = widget.recipe;
     final totalTime = (prepTime ?? 0) + (cookTime ?? 0);
 
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!_isEditing) ...[
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.recipe.title,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _isEditing = true;
-                      });
-                    },
-                    icon: Icon(Icons.edit),
-                  )
-                ],
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Chip(
-                visualDensity: VisualDensity(vertical: -4),
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Theme.of(context).primaryColor),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                label: Text(
-                  widget.meal.mealType.displayName,
-                  style: TextStyle(color: Theme.of(context).primaryColor),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.schedule),
-              title: Text('Total: ${totalTime > 0 ? "$totalTime min" : "-"}'),
-              subtitle: SizedBox(
-                height: 16,
-                child: Row(
-                  children: [
-                    Text('Prep: ${prepTime != null ? "$prepTime min" : "-"}'),
-                    VerticalDivider(),
-                    Text('Cook: ${cookTime != null ? "$cookTime min" : "-"}'),
-                  ],
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.restaurant_menu),
-              title: Text('Servings: ${widget.meal.servings}'),
-              subtitle: Text('Recipe servings: ${widget.recipe.servings}'),
-            ),
-          ] else ...[
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(labelText: 'Recipe title'),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: ValueListenableBuilder(
-                valueListenable: _mealTypeController,
-                builder: (context, value, child) => DropdownButtonFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Select a meal type',
-                    ),
-                    value: value,
-                    items: MealType.values
-                        .map(
-                          (mealType) => DropdownMenuItem(
-                            value: mealType,
-                            child: Text(mealType.displayName),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        _mealTypeController.value = newValue;
-                      }
-                    }),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.schedule),
-              title: Row(
-                children: [
-                  Flexible(
-                    child: TextFormField(
-                      controller: _prepTimeController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Prep time (min)'),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Flexible(
-                    child: TextFormField(
-                      controller: _cookTimeController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Cook time (min)'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.restaurant_menu),
-              title: Row(
-                children: [
-                  Flexible(
-                    child: TextFormField(
-                      controller: _mealServingsController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Meal servings'),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Flexible(
-                    child: TextFormField(
-                      controller: _recipeServingsController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Recipe servings'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FilledButton(onPressed: saveChanges, child: Text('Save')),
-                SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: () {
-                    setState(() {
-                      _isEditing = false;
-                    });
-                  },
-                  child: Text('Cancel'),
-                ),
-              ],
-            )
-          ]
-        ],
-      ),
-    );
-  }
-}
-
-class RecipeIngredients extends StatefulWidget {
-  final String recipeId;
-  final List<Ingredient> ingredients;
-  final double quantityRatio;
-
-  const RecipeIngredients({
-    super.key,
-    required this.recipeId,
-    required this.ingredients,
-    required this.quantityRatio,
-  });
-
-  @override
-  State<RecipeIngredients> createState() => _RecipeIngredientsState();
-}
-
-class _RecipeIngredientsState extends State<RecipeIngredients> {
-  final _formKey = GlobalKey<FormState>();
-  late final List<Ingredient> formIngredients;
-
-  bool _isEditing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    formIngredients = [];
-    formIngredients.addAll(widget.ingredients);
-  }
-
-  void addIngredient() {
-    setState(() {
-      formIngredients.add(Ingredient('', null, null));
-    });
-  }
-
-  void removeIngredient(int index) {
-    setState(() {
-      formIngredients.removeAt(index);
-    });
-  }
-
-  void updateIngredient(int index, Ingredient updatedIngredient) {
-    setState(() {
-      formIngredients[index] = updatedIngredient;
-    });
-  }
-
-  Future<void> saveChanges() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isEditing = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -418,81 +157,109 @@ class _RecipeIngredientsState extends State<RecipeIngredients> {
             children: [
               Expanded(
                 child: Text(
-                  'Ingredients',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  widget.recipe.title,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isEditing = true;
-                  });
-                },
-                icon: Icon(Icons.edit),
-              )
             ],
           ),
         ),
-        SizedBox(height: 8),
-        Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _isEditing
-                  ? ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: formIngredients.length,
-                      itemBuilder: (context, index) {
-                        return RecipeIngredientInput(
-                          ingredient: formIngredients[index],
-                          quantityRatio: widget.quantityRatio,
-                          onDelete: () => removeIngredient(index),
-                          onUpdate: (ing) => updateIngredient(index, ing),
-                        );
-                      },
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: widget.ingredients.length,
-                      itemBuilder: (context, index) {
-                        final quantity =
-                            widget.ingredients[index].quantity != null
-                                ? widget.ingredients[index].quantity! *
-                                    widget.quantityRatio
-                                : null;
-
-                        return RecipeIngredient(
-                          name: widget.ingredients[index].name,
-                          unit: widget.ingredients[index].unit,
-                          quantity: quantity,
-                        );
-                      },
-                    ),
-              if (_isEditing) ...[
-                ElevatedButton.icon(
-                  icon: Icon(Icons.add),
-                  label: Text('Add ingredient'),
-                  onPressed: addIngredient,
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          width: 100,
+          child: ValueListenableBuilder(
+            valueListenable: _mealTypeController,
+            builder: (context, value, child) => DropdownButtonFormField(
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  isDense: true,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FilledButton(onPressed: saveChanges, child: Text('Save')),
-                    SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = false;
-                        });
-                      },
-                      child: Text('Cancel'),
-                    ),
-                  ],
-                )
-              ]
-            ],
+                alignment: Alignment.center,
+                icon: SizedBox.shrink(),
+                value: value,
+                items: MealType.values
+                    .map(
+                      (mealType) => DropdownMenuItem(
+                        alignment: Alignment.center,
+                        value: mealType,
+                        child: Text(mealType.displayName),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (newValue) {
+                  if (newValue != null) {
+                    _mealTypeController.value = newValue;
+                  }
+                }),
           ),
+        ),
+        ListTile(
+          leading: Icon(Icons.schedule),
+          title: Text('Total: ${totalTime > 0 ? "$totalTime min" : "-"}'),
+          subtitle: SizedBox(
+            height: 16,
+            child: Row(
+              children: [
+                Text('Prep: ${prepTime != null ? "$prepTime min" : "-"}'),
+                VerticalDivider(),
+                Text('Cook: ${cookTime != null ? "$cookTime min" : "-"}'),
+              ],
+            ),
+          ),
+        ),
+        ListTile(
+          leading: Icon(Icons.restaurant_menu),
+          title: ServingsInput(notifier: _servingsController),
+        ),
+      ],
+    );
+  }
+}
+
+class RecipeIngredients extends StatelessWidget {
+  final List<Ingredient> ingredients;
+  final double quantityRatio;
+
+  const RecipeIngredients({
+    super.key,
+    required this.ingredients,
+    required this.quantityRatio,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Ingredients',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+        SizedBox(height: 8),
+        ListView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: ingredients.length,
+          itemBuilder: (context, index) {
+            final quantity = ingredients[index].quantity != null
+                ? ingredients[index].quantity! * quantityRatio
+                : null;
+
+            return RecipeIngredient(
+              name: ingredients[index].name,
+              unit: ingredients[index].unit,
+              quantity: quantity,
+            );
+          },
         ),
       ],
     );
@@ -540,108 +307,6 @@ class RecipeIngredient extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       child: Text('• $formattedQuantity $formattedUnit$formattedName'),
-    );
-  }
-}
-
-class RecipeIngredientInput extends StatelessWidget {
-  final Ingredient ingredient;
-  final double quantityRatio;
-  final VoidCallback onDelete;
-  final ValueChanged<Ingredient> onUpdate;
-
-  const RecipeIngredientInput({
-    super.key,
-    required this.ingredient,
-    required this.quantityRatio,
-    required this.onDelete,
-    required this.onUpdate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final quantity = ingredient.quantity != null
-        ? ingredient.quantity! * quantityRatio
-        : null;
-    final nameController = TextEditingController(text: ingredient.name);
-    final unitController = ValueNotifier<UnitType?>(ingredient.unit);
-    final quantityController = TextEditingController(text: quantity.toString());
-
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Column(
-        children: [
-          TextFormField(
-            controller: nameController,
-            decoration: const InputDecoration(labelText: 'Name'),
-            onChanged: (value) {
-              onUpdate(
-                Ingredient(value, ingredient.quantity, ingredient.unit),
-              );
-            },
-          ),
-          SizedBox(width: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: quantityController,
-                  decoration: InputDecoration(labelText: 'Quantity'),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  onChanged: (value) {
-                    onUpdate(
-                      Ingredient(
-                        ingredient.name,
-                        double.parse(value) * quantityRatio,
-                        ingredient.unit,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: ValueListenableBuilder(
-                  valueListenable: unitController,
-                  builder: (context, value, child) {
-                    final items = UnitType.values
-                        .map(
-                          (unitType) => DropdownMenuItem(
-                            value: unitType,
-                            child: Text(unitType.displayName),
-                          ),
-                        )
-                        .toList();
-                    items.add(
-                      DropdownMenuItem(value: null, child: Text('(none)')),
-                    );
-
-                    return DropdownButtonFormField(
-                      decoration: InputDecoration(labelText: 'Unit'),
-                      value: value,
-                      items: items,
-                      onChanged: (value) {
-                        onUpdate(
-                          Ingredient(
-                            ingredient.name,
-                            ingredient.quantity,
-                            value,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-              SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: onDelete,
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

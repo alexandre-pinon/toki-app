@@ -17,6 +17,8 @@ class MealProvider extends LoadingChangeNotifier {
   PlannedMeal? get meal => _meal;
 
   RecipeDetails? _recipeDetails;
+  RecipeDetails? get recipeDetails => _recipeDetails;
+
   Recipe? get recipe => _recipeDetails?.recipe;
   List<Ingredient> get ingredients =>
       _recipeDetails != null ? _recipeDetails!.ingredients : [];

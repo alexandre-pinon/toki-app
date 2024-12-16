@@ -23,7 +23,7 @@ class PlannedMeal {
         recipeId = json['recipe_id'],
         mealDate = DateTime.parse(json['meal_date'])
             .copyWith(isUtc: true), // force date parse as UTC
-        mealType = MealTypeExtension.fromString(json['meal_type']),
+        mealType = MealType.fromString(json['meal_type']),
         servings = json['servings'];
 }
 

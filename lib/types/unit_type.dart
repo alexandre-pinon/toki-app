@@ -16,7 +16,12 @@ enum UnitType {
   package,
   slice,
   totaste,
-  unit,
+  unit;
+
+  @override
+  String toString() {
+    return displayName;
+  }
 }
 
 extension StringExtension on UnitType {

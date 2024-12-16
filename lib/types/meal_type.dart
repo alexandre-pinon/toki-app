@@ -1,4 +1,6 @@
-enum MealType implements Comparable<MealType> {
+import 'package:toki_app/types/displayable.dart';
+
+enum MealType implements Comparable<MealType>, Displayable {
   breakfast,
   lunch,
   dinner;
@@ -14,9 +16,8 @@ enum MealType implements Comparable<MealType> {
       MealType.dinner => 'dinner'
     };
   }
-}
 
-extension StringExtension on MealType {
+  @override
   String get displayName {
     return switch (this) {
       MealType.breakfast => 'Breakfast',
@@ -24,9 +25,7 @@ extension StringExtension on MealType {
       MealType.dinner => 'Dinner'
     };
   }
-}
 
-extension MealTypeExtension on MealType {
   static MealType fromString(String value) {
     return switch (value.toLowerCase()) {
       'breakfast' => MealType.breakfast,
