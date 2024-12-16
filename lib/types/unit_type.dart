@@ -38,7 +38,7 @@ extension StringExtension on UnitType {
       UnitType.can => 'can',
       UnitType.package => 'package',
       UnitType.slice => 'slice',
-      UnitType.totaste => 'totaste',
+      UnitType.totaste => 'to taste',
       UnitType.unit => 'unit',
     };
   }
@@ -63,7 +63,7 @@ extension UnitTypeExtension on UnitType {
       'can' => UnitType.can,
       'package' => UnitType.package,
       'slice' => UnitType.slice,
-      'totaste' => UnitType.totaste,
+      'to taste' => UnitType.totaste,
       'unit' => UnitType.unit,
       _ => throw ArgumentError('Invalid UnitType value: $value')
     };

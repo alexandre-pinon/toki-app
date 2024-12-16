@@ -78,6 +78,7 @@ class _MealScreenState extends State<MealScreen> {
               ),
               SizedBox(height: 16),
               RecipeIngredients(
+                recipeId: mealProvider.recipe!.id,
                 ingredients: mealProvider.ingredients,
                 quantityRatio:
                     mealProvider.meal!.servings / mealProvider.recipe!.servings,
@@ -350,11 +351,13 @@ class _RecipeHeaderState extends State<RecipeHeader> {
 }
 
 class RecipeIngredients extends StatefulWidget {
+  final String recipeId;
   final List<Ingredient> ingredients;
   final double quantityRatio;
 
   const RecipeIngredients({
     super.key,
+    required this.recipeId,
     required this.ingredients,
     required this.quantityRatio,
   });
@@ -365,20 +368,42 @@ class RecipeIngredients extends StatefulWidget {
 
 class _RecipeIngredientsState extends State<RecipeIngredients> {
   final _formKey = GlobalKey<FormState>();
-  late final List<Ingredient> ingredients;
+  late final List<Ingredient> formIngredients;
 
   bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    ingredients = widget.ingredients;
+    formIngredients = [];
+    formIngredients.addAll(widget.ingredients);
   }
 
   void addIngredient() {
     setState(() {
-      // removed ids ?
-      ingredients.add(Ingredient(id, recipeId, name, quantity, unit));
+      formIngredients.add(Ingredient('', null, null));
+    });
+  }
+
+  void removeIngredient(int index) {
+    setState(() {
+      formIngredients.removeAt(index);
+    });
+  }
+
+  void updateIngredient(int index, Ingredient updatedIngredient) {
+    setState(() {
+      formIngredients[index] = updatedIngredient;
+    });
+  }
+
+  Future<void> saveChanges() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isEditing = false;
     });
   }
 
@@ -394,7 +419,7 @@ class _RecipeIngredientsState extends State<RecipeIngredients> {
               Expanded(
                 child: Text(
                   'Ingredients',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               IconButton(
@@ -413,23 +438,60 @@ class _RecipeIngredientsState extends State<RecipeIngredients> {
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: widget.ingredients
-                .map((ingredient) => _isEditing
-                    ? RecipeIngredient(
-                        name: ingredient.name,
-                        unit: ingredient.unit,
-                        quantity: ingredient.quantity != null
-                            ? ingredient.quantity! * widget.quantityRatio
-                            : null,
-                      )
-                    : RecipeIngredientInput(
-                        name: ingredient.name,
-                        unit: ingredient.unit,
-                        quantity: ingredient.quantity != null
-                            ? ingredient.quantity! * widget.quantityRatio
-                            : null,
-                      ))
-                .toList(),
+            children: [
+              _isEditing
+                  ? ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: formIngredients.length,
+                      itemBuilder: (context, index) {
+                        return RecipeIngredientInput(
+                          ingredient: formIngredients[index],
+                          quantityRatio: widget.quantityRatio,
+                          onDelete: () => removeIngredient(index),
+                          onUpdate: (ing) => updateIngredient(index, ing),
+                        );
+                      },
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: widget.ingredients.length,
+                      itemBuilder: (context, index) {
+                        final quantity =
+                            widget.ingredients[index].quantity != null
+                                ? widget.ingredients[index].quantity! *
+                                    widget.quantityRatio
+                                : null;
+
+                        return RecipeIngredient(
+                          name: widget.ingredients[index].name,
+                          unit: widget.ingredients[index].unit,
+                          quantity: quantity,
+                        );
+                      },
+                    ),
+              if (_isEditing) ...[
+                ElevatedButton.icon(
+                  icon: Icon(Icons.add),
+                  label: Text('Add ingredient'),
+                  onPressed: addIngredient,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FilledButton(onPressed: saveChanges, child: Text('Save')),
+                    SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditing = false;
+                        });
+                      },
+                      child: Text('Cancel'),
+                    ),
+                  ],
+                )
+              ]
+            ],
           ),
         ),
       ],
@@ -482,51 +544,103 @@ class RecipeIngredient extends StatelessWidget {
   }
 }
 
-class RecipeIngredientInput extends StatefulWidget {
-  final String name;
-  final UnitType? unit;
-  final double? quantity;
+class RecipeIngredientInput extends StatelessWidget {
+  final Ingredient ingredient;
+  final double quantityRatio;
+  final VoidCallback onDelete;
+  final ValueChanged<Ingredient> onUpdate;
 
   const RecipeIngredientInput({
     super.key,
-    required this.name,
-    this.unit,
-    this.quantity,
+    required this.ingredient,
+    required this.quantityRatio,
+    required this.onDelete,
+    required this.onUpdate,
   });
 
   @override
-  State<RecipeIngredientInput> createState() => _RecipeIngredientInputState();
-}
-
-class _RecipeIngredientInputState extends State<RecipeIngredientInput> {
-  late final TextEditingController _nameController;
-  late final ValueNotifier<UnitType?> _unitController;
-  late final TextEditingController _quantityController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.name);
-    _unitController = ValueNotifier(widget.unit);
-    _quantityController = TextEditingController(
-      text: widget.quantity.toString(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _unitController.dispose();
-    _quantityController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final quantity = ingredient.quantity != null
+        ? ingredient.quantity! * quantityRatio
+        : null;
+    final nameController = TextEditingController(text: ingredient.name);
+    final unitController = ValueNotifier<UnitType?>(ingredient.unit);
+    final quantityController = TextEditingController(text: quantity.toString());
+
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      child: Row(
-        children: [],
+      margin: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Column(
+        children: [
+          TextFormField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+            onChanged: (value) {
+              onUpdate(
+                Ingredient(value, ingredient.quantity, ingredient.unit),
+              );
+            },
+          ),
+          SizedBox(width: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: quantityController,
+                  decoration: InputDecoration(labelText: 'Quantity'),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (value) {
+                    onUpdate(
+                      Ingredient(
+                        ingredient.name,
+                        double.parse(value) * quantityRatio,
+                        ingredient.unit,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: ValueListenableBuilder(
+                  valueListenable: unitController,
+                  builder: (context, value, child) {
+                    final items = UnitType.values
+                        .map(
+                          (unitType) => DropdownMenuItem(
+                            value: unitType,
+                            child: Text(unitType.displayName),
+                          ),
+                        )
+                        .toList();
+                    items.add(
+                      DropdownMenuItem(value: null, child: Text('(none)')),
+                    );
+
+                    return DropdownButtonFormField(
+                      decoration: InputDecoration(labelText: 'Unit'),
+                      value: value,
+                      items: items,
+                      onChanged: (value) {
+                        onUpdate(
+                          Ingredient(
+                            ingredient.name,
+                            ingredient.quantity,
+                            value,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: onDelete,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
