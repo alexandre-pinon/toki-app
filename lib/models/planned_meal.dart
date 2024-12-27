@@ -25,6 +25,29 @@ class PlannedMeal {
             .copyWith(isUtc: true), // force date parse as UTC
         mealType = MealType.fromString(json['meal_type']),
         servings = json['servings'];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recipe_id': recipeId,
+      'meal_date': mealDate.toIso8601String(),
+      'meal_type': mealType.toString(),
+      'servings': servings,
+    };
+  }
+
+  PlannedMeal copyWith({
+    required MealType mealType,
+    required int servings,
+  }) {
+    return PlannedMeal(
+      id,
+      userId,
+      recipeId,
+      mealDate,
+      mealType,
+      servings,
+    );
+  }
 }
 
 class WeeklyPlannedMeal extends PlannedMeal {

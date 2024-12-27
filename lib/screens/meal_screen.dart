@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/main.dart';
@@ -9,6 +11,7 @@ import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/recipe_edit_screen.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/unit_type.dart';
@@ -134,6 +137,9 @@ class _RecipeHeaderState extends State<RecipeHeader> {
     super.initState();
     _mealTypeController = ValueNotifier(widget.meal.mealType);
     _servingsController = ValueNotifier(widget.meal.servings);
+
+    _mealTypeController.addListener(_saveData);
+    _servingsController.addListener(_saveData);
   }
 
   @override
@@ -141,6 +147,26 @@ class _RecipeHeaderState extends State<RecipeHeader> {
     _mealTypeController.dispose();
     _servingsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveData() async {
+    final updatedMeal = widget.meal.copyWith(
+      mealType: _mealTypeController.value,
+      servings: _servingsController.value,
+    );
+
+    final mealProvider = context.read<MealProvider>();
+    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      await mealProvider.updateMeal(updatedMeal);
+      await weeklyMealsProvider.fetchMeals();
+    } on Unauthenticated {
+      await authProvider.logout();
+    } catch (error) {
+      showGlobalSnackBar(error.toString());
+    }
   }
 
   @override

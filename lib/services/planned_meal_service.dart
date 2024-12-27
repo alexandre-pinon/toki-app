@@ -68,19 +68,13 @@ class PlannedMealService {
       throw Unauthenticated();
     }
 
-    final body = {
-      'recipe_id': meal.recipeId,
-      'meal_date': meal.mealDate.toIso8601String(),
-      'meal_type': meal.mealType.toString(),
-      'servings': meal.servings,
-    };
     final response = await http.put(
       Uri.parse('$baseUrl/${meal.id}'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-type': 'application/json'
       },
-      body: jsonEncode(body),
+      body: jsonEncode(meal.toJson()),
     );
 
     switch (response.statusCode) {

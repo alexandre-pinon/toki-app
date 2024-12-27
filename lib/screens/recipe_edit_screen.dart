@@ -105,7 +105,7 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
 
     try {
       await mealProvider.updateRecipe(updatedRecipeDetails);
-      await weeklyMealsProvider.fetchMeals(); // refresh home page data
+      await weeklyMealsProvider.fetchMeals();
       navigator.pop();
     } on Unauthenticated {
       await authProvider.logout();
