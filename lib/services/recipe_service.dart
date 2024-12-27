@@ -32,20 +32,19 @@ class RecipeService {
     return RecipeDetails.fromJson(json);
   }
 
-  Future<RecipeDetails> updateRecipe(Recipe recipe) async {
+  Future<RecipeDetails> updateRecipe(RecipeDetails recipeDetails) async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {
       throw Unauthenticated();
     }
 
-    final body = {'recipe': recipe.toJson()};
     final response = await http.put(
-      Uri.parse('$baseUrl/${recipe.id}'),
+      Uri.parse('$baseUrl/${recipeDetails.recipe.id}'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-type': 'application/json'
       },
-      body: jsonEncode(body),
+      body: jsonEncode(recipeDetails.toJson()),
     );
 
     switch (response.statusCode) {

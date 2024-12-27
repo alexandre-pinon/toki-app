@@ -1,8 +1,16 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
+import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/main.dart';
+import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/recipe_details.dart';
+import 'package:toki_app/providers/auth_provider.dart';
+import 'package:toki_app/providers/meal_provider.dart';
+import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/types/unit_type.dart';
 import 'package:toki_app/widgets/servings_input.dart';
 
@@ -21,7 +29,8 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
   late final TextEditingController _prepTimeController;
   late final TextEditingController _cookTimeController;
   late final ValueNotifier<int> _servingsController;
-  late final List<IngredientController> _ingredientsController;
+  late final List<IngredientController> _ingredientControllers;
+  late final List<TextEditingController> _instructionControllers;
 
   @override
   void initState() {
@@ -35,20 +44,37 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
       text: recipe.cookTime?.toString() ?? '',
     );
     _servingsController = ValueNotifier(recipe.servings);
-    _ingredientsController = widget.recipeDetails.ingredients
+    _ingredientControllers = widget.recipeDetails.ingredients
         .map(IngredientController.fromIngredient)
+        .toList();
+    _instructionControllers = widget.recipeDetails.instructions
+        .map(
+          (instruction) => TextEditingController(text: instruction.instruction),
+        )
         .toList();
   }
 
   void _addIngredient() {
     setState(() {
-      _ingredientsController.add(IngredientController.empty());
+      _ingredientControllers.add(IngredientController.empty());
     });
   }
 
   void _removeIngredient(int index) {
     setState(() {
-      _ingredientsController.removeAt(index);
+      _ingredientControllers.removeAt(index);
+    });
+  }
+
+  void _addInstruction() {
+    setState(() {
+      _instructionControllers.add(TextEditingController());
+    });
+  }
+
+  void _removeInstruction(int index) {
+    setState(() {
+      _instructionControllers.removeAt(index);
     });
   }
 
@@ -59,20 +85,33 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
       cookTime: int.tryParse(_cookTimeController.text),
       servings: _servingsController.value,
     );
-    final updatedIngredients = _ingredientsController
+    final updatedIngredients = _ingredientControllers
         .map(
           (controller) => controller.value,
         )
         .toList();
+    final updatedInstructions = _instructionControllers
+        .mapIndexed(
+          (index, controller) => Instruction(index + 1, controller.text),
+        )
+        .toList();
+    final updatedRecipeDetails =
+        RecipeDetails(updatedRecipe, updatedIngredients, updatedInstructions);
 
-    // Simulate saving
-    print('Saving: ${updatedRecipe.toJson()}');
-    print(
-      'Saving: ${updatedIngredients.map((ingredient) => ingredient.toJson())}',
-    );
+    final mealProvider = context.read<MealProvider>();
+    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
+    final authProvider = context.read<AuthProvider>();
+    final navigator = Navigator.of(context);
 
-    // Call your save service or state management logic
-    // await RecipeService.saveRecipe(updatedRecipe);
+    try {
+      await mealProvider.updateRecipe(updatedRecipeDetails);
+      await weeklyMealsProvider.fetchMeals(); // refresh home page data
+      navigator.pop();
+    } on Unauthenticated {
+      await authProvider.logout();
+    } catch (error) {
+      showGlobalSnackBar(error.toString());
+    }
   }
 
   @override
@@ -82,7 +121,10 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
     _cookTimeController.dispose();
     _servingsController.dispose();
 
-    for (final controller in _ingredientsController) {
+    for (final controller in _ingredientControllers) {
+      controller.dispose();
+    }
+    for (final controller in _instructionControllers) {
       controller.dispose();
     }
 
@@ -97,9 +139,9 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
         title: Text(
             'Edit ${widget.recipeDetails.recipe.title.toLowerCase()} recipe'),
         actions: [
-          TextButton(
+          IconButton(
             onPressed: _saveData,
-            child: Text('Save'),
+            icon: Icon(Icons.save),
           )
         ],
       ),
@@ -122,7 +164,7 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
               cookTimeController: _cookTimeController,
               servingsController: _servingsController,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 32),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
@@ -130,11 +172,24 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            RecipeIngredientsInput(
-              ingredientsController: _ingredientsController,
+            IngredientsInput(
+              ingredientControllers: _ingredientControllers,
               addIngredient: _addIngredient,
               removeIngredient: _removeIngredient,
-            )
+            ),
+            SizedBox(height: 32),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Instructions',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            InstructionsInput(
+              instructionControllers: _instructionControllers,
+              addInstruction: _addInstruction,
+              removeInstruction: _removeInstruction,
+            ),
           ],
         ),
       ),
@@ -206,14 +261,14 @@ class RecipeInput extends StatelessWidget {
   }
 }
 
-class RecipeIngredientsInput extends StatelessWidget {
-  final List<IngredientController> ingredientsController;
+class IngredientsInput extends StatelessWidget {
+  final List<IngredientController> ingredientControllers;
   final VoidCallback addIngredient;
   final void Function(int index) removeIngredient;
 
-  const RecipeIngredientsInput({
+  const IngredientsInput({
     super.key,
-    required this.ingredientsController,
+    required this.ingredientControllers,
     required this.addIngredient,
     required this.removeIngredient,
   });
@@ -225,9 +280,9 @@ class RecipeIngredientsInput extends StatelessWidget {
         ListView.builder(
           physics: NeverScrollableScrollPhysics(),
           shrinkWrap: true,
-          itemCount: ingredientsController.length,
-          itemBuilder: (context, index) => RecipeIngredientInput(
-            controller: ingredientsController[index],
+          itemCount: ingredientControllers.length,
+          itemBuilder: (context, index) => IngredientInput(
+            controller: ingredientControllers[index],
             onDelete: () => removeIngredient(index),
           ),
         ),
@@ -241,11 +296,11 @@ class RecipeIngredientsInput extends StatelessWidget {
   }
 }
 
-class RecipeIngredientInput extends StatelessWidget {
+class IngredientInput extends StatelessWidget {
   final IngredientController controller;
   final VoidCallback onDelete;
 
-  const RecipeIngredientInput({
+  const IngredientInput({
     super.key,
     required this.controller,
     required this.onDelete,
@@ -308,6 +363,82 @@ class RecipeIngredientInput extends StatelessWidget {
                 onPressed: onDelete,
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class InstructionsInput extends StatelessWidget {
+  final List<TextEditingController> instructionControllers;
+  final VoidCallback addInstruction;
+  final void Function(int index) removeInstruction;
+
+  const InstructionsInput({
+    super.key,
+    required this.instructionControllers,
+    required this.addInstruction,
+    required this.removeInstruction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: instructionControllers.length,
+          itemBuilder: (context, index) => InstructionInput(
+            controller: instructionControllers[index],
+            onDelete: () => removeInstruction(index),
+          ),
+        ),
+        ElevatedButton.icon(
+          icon: Icon(Icons.add),
+          label: Text('Add instruction'),
+          onPressed: addInstruction,
+        ),
+      ],
+    );
+  }
+}
+
+class InstructionInput extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onDelete;
+
+  const InstructionInput({
+    super.key,
+    required this.controller,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: 'Instruction',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+            ),
+          ),
+          SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Colors.red,
+            ),
+            onPressed: onDelete,
           ),
         ],
       ),

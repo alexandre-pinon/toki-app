@@ -55,9 +55,9 @@ class MealProvider extends LoadingChangeNotifier {
     });
   }
 
-  Future<void> updateRecipe(Recipe recipe) async {
+  Future<void> updateRecipe(RecipeDetails recipeDetails) async {
     withLoading(() async {
-      _recipeDetails = await recipeService.updateRecipe(recipe);
+      _recipeDetails = await recipeService.updateRecipe(recipeDetails);
     });
   }
 }

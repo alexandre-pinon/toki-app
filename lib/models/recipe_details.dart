@@ -17,4 +17,14 @@ class RecipeDetails {
         instructions = (json['instructions'] as List<dynamic>)
             .map(Instruction.fromJson)
             .toList();
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recipe': recipe.toJson(),
+      'ingredients':
+          ingredients.map((ingredient) => ingredient.toJson()).toList(),
+      'instructions':
+          instructions.map((instruction) => instruction.toJson()).toList(),
+    };
+  }
 }
