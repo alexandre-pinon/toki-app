@@ -9,6 +9,19 @@ enum Weekday implements Comparable<Weekday> {
 
   @override
   int compareTo(Weekday other) => index - other.index;
+
+  factory Weekday.fromDatetimeWeekday(int value) {
+    return switch (value) {
+      DateTime.monday => Weekday.monday,
+      DateTime.tuesday => Weekday.tuesday,
+      DateTime.wednesday => Weekday.wednesday,
+      DateTime.thursday => Weekday.thursday,
+      DateTime.friday => Weekday.friday,
+      DateTime.saturday => Weekday.saturday,
+      DateTime.sunday => Weekday.sunday,
+      _ => throw ArgumentError('Invalid Weekday value: $value')
+    };
+  }
 }
 
 extension StringExtension on Weekday {
@@ -21,21 +34,6 @@ extension StringExtension on Weekday {
       Weekday.friday => 'Friday',
       Weekday.saturday => 'Saturday',
       Weekday.sunday => 'Sunday',
-    };
-  }
-}
-
-extension WeekdayExtension on Weekday {
-  static Weekday fromDatetimeWeekday(int value) {
-    return switch (value) {
-      DateTime.monday => Weekday.monday,
-      DateTime.tuesday => Weekday.tuesday,
-      DateTime.wednesday => Weekday.wednesday,
-      DateTime.thursday => Weekday.thursday,
-      DateTime.friday => Weekday.friday,
-      DateTime.saturday => Weekday.saturday,
-      DateTime.sunday => Weekday.sunday,
-      _ => throw ArgumentError('Invalid Weekday value: $value')
     };
   }
 }

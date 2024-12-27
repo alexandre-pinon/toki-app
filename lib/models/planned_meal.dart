@@ -38,6 +38,7 @@ class PlannedMeal {
   PlannedMeal copyWith({
     required MealType mealType,
     required int servings,
+    required DateTime mealDate,
   }) {
     return PlannedMeal(
       id,

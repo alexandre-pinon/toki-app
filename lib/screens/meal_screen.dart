@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
@@ -15,6 +16,7 @@ import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/recipe_edit_screen.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/unit_type.dart';
+import 'package:toki_app/types/weekday.dart';
 import 'package:toki_app/widgets/servings_input.dart';
 
 class MealScreen extends StatefulWidget {
@@ -131,12 +133,14 @@ class RecipeHeader extends StatefulWidget {
 class _RecipeHeaderState extends State<RecipeHeader> {
   late final ValueNotifier<MealType> _mealTypeController;
   late final ValueNotifier<int> _servingsController;
+  late DateTime _mealDate;
 
   @override
   void initState() {
     super.initState();
     _mealTypeController = ValueNotifier(widget.meal.mealType);
     _servingsController = ValueNotifier(widget.meal.servings);
+    _mealDate = widget.meal.mealDate;
 
     _mealTypeController.addListener(_saveData);
     _servingsController.addListener(_saveData);
@@ -149,10 +153,32 @@ class _RecipeHeaderState extends State<RecipeHeader> {
     super.dispose();
   }
 
+  Future<void> _pickDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+      initialDate: widget.meal.mealDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(Duration(days: 6)),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _mealDate = DateTime.utc(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+        );
+      });
+      await _saveData();
+    }
+  }
+
   Future<void> _saveData() async {
     final updatedMeal = widget.meal.copyWith(
       mealType: _mealTypeController.value,
       servings: _servingsController.value,
+      mealDate: _mealDate,
     );
 
     final mealProvider = context.read<MealProvider>();
@@ -185,6 +211,14 @@ class _RecipeHeaderState extends State<RecipeHeader> {
                 child: Text(
                   widget.recipe.title,
                   style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+              OutlinedButton(
+                style: ButtonStyle(visualDensity: VisualDensity.compact),
+                onPressed: _pickDate,
+                child: Text(
+                  Weekday.fromDatetimeWeekday(widget.meal.mealDate.weekday)
+                      .displayName,
                 ),
               ),
             ],

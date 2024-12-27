@@ -6,7 +6,6 @@ import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/meal_screen.dart';
-import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/weekday.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
@@ -59,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: mealsByDay.entries
                 .sortedBy((entry) => entry.key) // by meal date
                 .map((entry) => DayMeals(
-                      day: WeekdayExtension.fromDatetimeWeekday(
+                      day: Weekday.fromDatetimeWeekday(
                         entry.key.weekday,
                       ),
                       meals: entry.value,
