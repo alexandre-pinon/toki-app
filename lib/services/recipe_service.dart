@@ -12,6 +12,28 @@ class RecipeService {
 
   RecipeService({required this.baseUrl, required this.tokenRepository});
 
+  Future<List<Recipe>> fetchRecipes() async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      return throw Unauthenticated();
+    }
+
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    switch (response.statusCode) {
+      case 200:
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map(Recipe.fromJson).toList();
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Fetch recipes failed');
+    }
+  }
+
   Future<RecipeDetails> fetchRecipeDetails(String id) async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {

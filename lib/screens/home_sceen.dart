@@ -5,6 +5,8 @@ import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
+import 'package:toki_app/screens/add_meal/add_meal_step_2_screen.dart';
+import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
 import 'package:toki_app/screens/meal_screen.dart';
 import 'package:toki_app/types/weekday.dart';
 import 'package:provider/provider.dart';
@@ -66,6 +68,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 .toList(),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddMealStep1Screen()),
+          );
+        },
+        shape: CircleBorder(),
+        child: Icon(Icons.add),
       ),
     );
   }

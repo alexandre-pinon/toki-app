@@ -22,6 +22,16 @@ enum Weekday implements Comparable<Weekday> {
       _ => throw ArgumentError('Invalid Weekday value: $value')
     };
   }
+
+  DateTime toClosestDate() {
+    var dateTime = DateTime.now();
+
+    while (dateTime.weekday != index + 1) {
+      dateTime = dateTime.add(Duration(days: 1));
+    }
+
+    return DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
+  }
 }
 
 extension StringExtension on Weekday {
@@ -34,6 +44,18 @@ extension StringExtension on Weekday {
       Weekday.friday => 'Friday',
       Weekday.saturday => 'Saturday',
       Weekday.sunday => 'Sunday',
+    };
+  }
+
+  String get minifiedDisplayName {
+    return switch (this) {
+      Weekday.monday => 'Mon',
+      Weekday.tuesday => 'Tue',
+      Weekday.wednesday => 'Wed',
+      Weekday.thursday => 'Thu',
+      Weekday.friday => 'Fri',
+      Weekday.saturday => 'Sat',
+      Weekday.sunday => 'Sun',
     };
   }
 }

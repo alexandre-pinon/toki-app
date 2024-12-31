@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/app.dart';
 import 'package:toki_app/providers/auth_provider.dart';
+import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/repositories/token_repository.dart';
@@ -62,7 +63,11 @@ void initApp() {
       ChangeNotifierProvider(
         create: (context) => WeeklyMealsProvider(mealService: mealService),
       ),
+      ChangeNotifierProvider(
+        create: (context) => MealCreationProvider(),
+      ),
       Provider(create: (context) => mealService),
+      Provider(create: (context) => recipeService),
     ],
     child: TokiApp(scaffoldMessengerKey: scaffoldMessengerKey),
   );
