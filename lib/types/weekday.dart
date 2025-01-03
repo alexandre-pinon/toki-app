@@ -10,6 +10,19 @@ enum Weekday implements Comparable<Weekday> {
   @override
   int compareTo(Weekday other) => index - other.index;
 
+  @override
+  String toString() {
+    return switch (this) {
+      Weekday.monday => 'monday',
+      Weekday.tuesday => 'tuesday',
+      Weekday.wednesday => 'wednesday',
+      Weekday.thursday => 'thursday',
+      Weekday.friday => 'friday',
+      Weekday.saturday => 'saturday',
+      Weekday.sunday => 'sunday',
+    };
+  }
+
   factory Weekday.fromDatetimeWeekday(int value) {
     return switch (value) {
       DateTime.monday => Weekday.monday,

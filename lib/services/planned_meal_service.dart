@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/errors/meal_already_exist_error.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/repositories/token_repository.dart';
+import 'package:toki_app/types/weekday.dart';
 
 class PlannedMealService {
   final String baseUrl;
@@ -59,6 +61,37 @@ class PlannedMealService {
         throw Unauthenticated();
       default:
         throw Exception('Fetch planned meal $id failed');
+    }
+  }
+
+  Future<PlannedMeal> createPlannedMeal(PlannedMealCreateInput input) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      },
+      body: jsonEncode(input.toJson()),
+    );
+
+    switch (response.statusCode) {
+      case 201:
+        final json = jsonDecode(response.body);
+        return PlannedMeal.fromJson(json);
+      case 401:
+        throw Unauthenticated();
+      case 409:
+        throw MealAlreadyExist(
+          Weekday.fromDatetimeWeekday(input.mealDate.weekday),
+          input.mealType,
+        );
+      default:
+        throw Exception('Create planned meal failed');
     }
   }
 

@@ -1,11 +1,15 @@
 import 'package:toki_app/types/meal_type.dart';
 
-class PlannedMeal {
+class PlannedMeal with PlannedMealJsonSerializable {
   final String id;
   final String userId;
+  @override
   final String recipeId;
+  @override
   final DateTime mealDate;
+  @override
   final MealType mealType;
+  @override
   final int servings;
 
   PlannedMeal(
@@ -25,15 +29,6 @@ class PlannedMeal {
             .copyWith(isUtc: true), // force date parse as UTC
         mealType = MealType.fromString(json['meal_type']),
         servings = json['servings'];
-
-  Map<String, dynamic> toJson() {
-    return {
-      'recipe_id': recipeId,
-      'meal_date': mealDate.toIso8601String(),
-      'meal_type': mealType.toString(),
-      'servings': servings,
-    };
-  }
 
   PlannedMeal copyWith({
     required MealType mealType,
@@ -89,5 +84,39 @@ class WeeklyPlannedMeal extends PlannedMeal {
       title,
       imageUrl,
     );
+  }
+}
+
+class PlannedMealCreateInput with PlannedMealJsonSerializable {
+  @override
+  final String recipeId;
+  @override
+  final DateTime mealDate;
+  @override
+  final MealType mealType;
+  @override
+  final int servings;
+
+  PlannedMealCreateInput(
+    this.recipeId,
+    this.mealDate,
+    this.mealType,
+    this.servings,
+  );
+}
+
+mixin PlannedMealJsonSerializable {
+  String get recipeId;
+  DateTime get mealDate;
+  dynamic get mealType;
+  int get servings;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recipe_id': recipeId,
+      'meal_date': mealDate.toIso8601String(),
+      'meal_type': mealType.toString(),
+      'servings': servings,
+    };
   }
 }
