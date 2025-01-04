@@ -120,4 +120,25 @@ class PlannedMealService {
         throw Exception('Update planned meal failed');
     }
   }
+
+  Future<void> deletePlannedMeal(String mealId) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$mealId'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    switch (response.statusCode) {
+      case 204:
+        return;
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Delete planned meal failed');
+    }
+  }
 }

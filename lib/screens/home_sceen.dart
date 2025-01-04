@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/main.dart';
@@ -8,6 +9,7 @@ import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_2_screen.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
 import 'package:toki_app/screens/meal_screen.dart';
+import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/types/weekday.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
@@ -20,21 +22,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Future<void> fetchMealData() async {
+    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      await weeklyMealsProvider.fetchMeals();
+    } on Unauthenticated {
+      await authProvider.logout();
+    } catch (error) {
+      showGlobalSnackBar(error.toString());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-      final authProvider = context.read<AuthProvider>();
-
-      try {
-        await weeklyMealsProvider.fetchMeals();
-      } on Unauthenticated {
-        await authProvider.logout();
-      } catch (error) {
-        showGlobalSnackBar(error.toString());
-      }
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => fetchMealData());
   }
 
   @override
@@ -64,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         entry.key.weekday,
                       ),
                       meals: entry.value,
+                      refetchMealData: fetchMealData,
                     ))
                 .toList(),
           );
@@ -86,8 +91,57 @@ class _HomeScreenState extends State<HomeScreen> {
 class DayMeals extends StatelessWidget {
   final Weekday day;
   final List<WeeklyPlannedMeal> meals;
+  final AsyncCallback refetchMealData;
 
-  const DayMeals({super.key, required this.day, required this.meals});
+  const DayMeals({
+    super.key,
+    required this.day,
+    required this.meals,
+    required this.refetchMealData,
+  });
+
+  Future<void> _deleteMeal(BuildContext context, String mealId) async {
+    final mealService = context.read<PlannedMealService>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      await mealService.deletePlannedMeal(mealId);
+      await refetchMealData();
+    } on Unauthenticated {
+      await authProvider.logout();
+    } catch (error) {
+      showGlobalSnackBar(error.toString());
+    }
+  }
+
+  Future<bool> _showConfirmationDialog(
+    BuildContext context,
+    String mealTitle,
+  ) async {
+    final deleteConfirmation = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Remove ${mealTitle.toLowerCase()} from ${day.displayName.toLowerCase()} meals?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+            child: Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: Text('Yes'),
+          ),
+        ],
+      ),
+    );
+    return deleteConfirmation ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,24 +151,38 @@ class DayMeals extends StatelessWidget {
           title: Text(day.displayName),
         ),
         ...meals.sortedBy((meal) => meal.mealType).map(
-              (meal) => Card(
-                margin: EdgeInsets.all(8.0),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      meal.imageUrl ?? 'https://placehold.co/64.png',
+              (meal) => Dismissible(
+                key: ValueKey(meal.id),
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (direction) {
+                  return _showConfirmationDialog(context, meal.title);
+                },
+                onDismissed: (direction) {
+                  _deleteMeal(context, meal.id);
+                },
+                background: Container(
+                  color: Colors.red,
+                ),
+                child: Card(
+                  margin: EdgeInsets.all(8.0),
+                  child: ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.network(
+                        meal.imageUrl ?? 'https://placehold.co/64.png',
+                      ),
                     ),
+                    title: Text(meal.title),
+                    subtitle: Text(meal.mealType.displayName),
+                    onTap: () {
+                      context.read<MealProvider>().resetData();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MealScreen(meal)),
+                      );
+                    },
                   ),
-                  title: Text(meal.title),
-                  subtitle: Text(meal.mealType.displayName),
-                  onTap: () {
-                    context.read<MealProvider>().resetData();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => MealScreen(meal)),
-                    );
-                  },
                 ),
               ),
             ),
