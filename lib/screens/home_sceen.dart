@@ -114,42 +114,47 @@ class DayMeals extends StatelessWidget {
           title: Text(day.displayName),
         ),
         ...meals.sortedBy((meal) => meal.mealType).map(
-              (meal) => Dismissible(
-                key: ValueKey(meal.id),
-                direction: DismissDirection.endToStart,
-                confirmDismiss: (direction) {
-                  final mealTitle = meal.title.toLowerCase();
-                  final weekDay = day.displayName.toLowerCase();
-                  return showConfirmationDialog(
-                    context: context,
-                    title: 'Remove $mealTitle from $weekDay meals?',
-                  );
-                },
-                onDismissed: (direction) {
-                  _deleteMeal(context, meal.id);
-                },
-                background: Container(
-                  color: Colors.red,
-                ),
-                child: Card(
-                  margin: EdgeInsets.all(8.0),
-                  child: ListTile(
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(
-                        meal.imageUrl ?? 'https://placehold.co/64.png',
-                      ),
+              (meal) => Container(
+                margin: EdgeInsets.symmetric(horizontal: 8),
+                child: Dismissible(
+                  key: ValueKey(meal.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (direction) {
+                    final mealTitle = meal.title.toLowerCase();
+                    final weekDay = day.displayName.toLowerCase();
+                    return showConfirmationDialog(
+                      context: context,
+                      title: 'Remove $mealTitle from $weekDay meals?',
+                    );
+                  },
+                  onDismissed: (direction) {
+                    _deleteMeal(context, meal.id);
+                  },
+                  background: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.red,
                     ),
-                    title: Text(meal.title),
-                    subtitle: Text(meal.mealType.displayName),
-                    onTap: () {
-                      context.read<MealProvider>().resetData();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MealScreen(meal)),
-                      );
-                    },
+                  ),
+                  child: Card(
+                    child: ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.network(
+                          meal.imageUrl ?? 'https://placehold.co/64.png',
+                        ),
+                      ),
+                      title: Text(meal.title),
+                      subtitle: Text(meal.mealType.displayName),
+                      onTap: () {
+                        context.read<MealProvider>().resetData();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MealScreen(meal)),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

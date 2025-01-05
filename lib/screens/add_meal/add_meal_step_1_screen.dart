@@ -123,7 +123,10 @@ class RecipeCard extends StatelessWidget {
         _deleteRecipe(context, recipe.id);
       },
       background: Container(
-        color: Colors.red,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.red,
+        ),
       ),
       child: Card(
         margin: EdgeInsets.all(8.0),
