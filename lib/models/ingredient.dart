@@ -22,7 +22,7 @@ class Ingredient {
     return {
       'name': name,
       'quantity': quantity,
-      'unit': unit.toString(),
+      'unit': unit?.toString(),
     };
   }
 }

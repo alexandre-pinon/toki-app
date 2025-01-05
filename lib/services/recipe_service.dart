@@ -54,6 +54,32 @@ class RecipeService {
     return RecipeDetails.fromJson(json);
   }
 
+  Future<RecipeDetails> createRecipe(RecipeDetailsCreateInput input) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      },
+      body: jsonEncode(input.toJson()),
+    );
+
+    switch (response.statusCode) {
+      case 201:
+        final json = jsonDecode(response.body);
+        return RecipeDetails.fromJson(json);
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Create recipe failed');
+    }
+  }
+
   Future<RecipeDetails> updateRecipe(RecipeDetails recipeDetails) async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {

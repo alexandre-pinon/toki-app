@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_2_screen.dart';
+import 'package:toki_app/screens/recipe_add_screen.dart';
 import 'package:toki_app/services/recipe_service.dart';
 
 class AddMealStep1Screen extends StatelessWidget {
@@ -40,6 +41,20 @@ class AddMealStep1Screen extends StatelessWidget {
                   itemCount: recipes.length,
                   itemBuilder: (context, index) => RecipeCard(
                     recipe: recipes[index],
+                  ),
+                ),
+                Center(
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipeAddScreen(),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.add),
+                    label: Text('Add recipe'),
                   ),
                 )
               ],

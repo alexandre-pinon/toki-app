@@ -28,3 +28,21 @@ class RecipeDetails {
     };
   }
 }
+
+class RecipeDetailsCreateInput {
+  final RecipeCreateInput recipe;
+  final List<Ingredient> ingredients;
+  final List<Instruction> instructions;
+
+  RecipeDetailsCreateInput(this.recipe, this.ingredients, this.instructions);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recipe': recipe.toJson(),
+      'ingredients':
+          ingredients.map((ingredient) => ingredient.toJson()).toList(),
+      'instructions':
+          instructions.map((instruction) => instruction.toJson()).toList(),
+    };
+  }
+}

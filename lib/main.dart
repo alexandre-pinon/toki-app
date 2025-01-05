@@ -64,7 +64,10 @@ void initApp() {
         create: (context) => WeeklyMealsProvider(mealService: mealService),
       ),
       ChangeNotifierProvider(
-        create: (context) => MealCreationProvider(mealService: mealService),
+        create: (context) => MealCreationProvider(
+          mealService: mealService,
+          recipeService: recipeService,
+        ),
       ),
       Provider(create: (context) => mealService),
       Provider(create: (context) => recipeService),

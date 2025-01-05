@@ -108,7 +108,7 @@ class PlannedMealCreateInput with PlannedMealJsonSerializable {
 mixin PlannedMealJsonSerializable {
   String get recipeId;
   DateTime get mealDate;
-  dynamic get mealType;
+  MealType get mealType;
   int get servings;
 
   Map<String, dynamic> toJson() {
