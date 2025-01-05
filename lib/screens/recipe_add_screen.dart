@@ -11,6 +11,7 @@ import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
+import 'package:toki_app/providers/recipes_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_2_screen.dart';
 import 'package:toki_app/widgets/recipe_form.dart';
@@ -49,14 +50,14 @@ class RecipeAddScreen extends StatelessWidget {
     );
 
     final mealCreationProvider = context.read<MealCreationProvider>();
-    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
+    final recipesProvider = context.read<RecipesProvider>();
     final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
     try {
       await mealCreationProvider.createAndSetRecipe(recipeDetails);
-      await weeklyMealsProvider.fetchMeals();
-      navigator.push(
+      await recipesProvider.fetchRecipes();
+      navigator.pushReplacement(
         MaterialPageRoute(builder: (context) => AddMealStep2Screen()),
       );
     } on Unauthenticated {
