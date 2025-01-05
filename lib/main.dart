@@ -7,6 +7,7 @@ import 'package:toki_app/app.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
+import 'package:toki_app/providers/recipes_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/repositories/token_repository.dart';
 import 'package:toki_app/services/auth_service.dart';
@@ -69,6 +70,9 @@ void initApp() {
           recipeService: recipeService,
         ),
       ),
+      ChangeNotifierProvider(
+        create: (context) => RecipesProvider(recipeService: recipeService),
+      ),
       Provider(create: (context) => mealService),
       Provider(create: (context) => recipeService),
     ],
@@ -91,4 +95,33 @@ void showGlobalSnackBar(String message) {
       ),
     );
   });
+}
+
+Future<bool> showConfirmationDialog({
+  required BuildContext context,
+  required String title,
+  String? content,
+}) async {
+  final deleteConfirmation = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: content != null ? Text(content) : null,
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: Text('No'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+          child: Text('Yes'),
+        ),
+      ],
+    ),
+  );
+  return deleteConfirmation ?? false;
 }

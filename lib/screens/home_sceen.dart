@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/main.dart';
@@ -67,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         entry.key.weekday,
                       ),
                       meals: entry.value,
-                      refetchMealData: fetchMealData,
                     ))
                 .toList(),
           );
@@ -90,56 +88,22 @@ class _HomeScreenState extends State<HomeScreen> {
 class DayMeals extends StatelessWidget {
   final Weekday day;
   final List<WeeklyPlannedMeal> meals;
-  final AsyncCallback refetchMealData;
 
-  const DayMeals({
-    super.key,
-    required this.day,
-    required this.meals,
-    required this.refetchMealData,
-  });
+  const DayMeals({super.key, required this.day, required this.meals});
 
   Future<void> _deleteMeal(BuildContext context, String mealId) async {
     final mealService = context.read<PlannedMealService>();
+    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
     final authProvider = context.read<AuthProvider>();
 
     try {
       await mealService.deletePlannedMeal(mealId);
-      await refetchMealData();
+      await weeklyMealsProvider.fetchMeals();
     } on Unauthenticated {
       await authProvider.logout();
     } catch (error) {
       showGlobalSnackBar(error.toString());
     }
-  }
-
-  Future<bool> _showConfirmationDialog(
-    BuildContext context,
-    String mealTitle,
-  ) async {
-    final deleteConfirmation = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Remove ${mealTitle.toLowerCase()} from ${day.displayName.toLowerCase()} meals?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: Text('No'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: Text('Yes'),
-          ),
-        ],
-      ),
-    );
-    return deleteConfirmation ?? false;
   }
 
   @override
@@ -154,7 +118,12 @@ class DayMeals extends StatelessWidget {
                 key: ValueKey(meal.id),
                 direction: DismissDirection.endToStart,
                 confirmDismiss: (direction) {
-                  return _showConfirmationDialog(context, meal.title);
+                  final mealTitle = meal.title.toLowerCase();
+                  final weekDay = day.displayName.toLowerCase();
+                  return showConfirmationDialog(
+                    context: context,
+                    title: 'Remove $mealTitle from $weekDay meals?',
+                  );
                 },
                 onDismissed: (direction) {
                   _deleteMeal(context, meal.id);

@@ -105,4 +105,25 @@ class RecipeService {
         throw Exception('Update recipe failed');
     }
   }
+
+  Future<void> deleteRecipe(String recipeId) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$recipeId'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    switch (response.statusCode) {
+      case 204:
+        return;
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Delete recipe failed');
+    }
+  }
 }
