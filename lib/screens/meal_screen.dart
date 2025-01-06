@@ -13,6 +13,7 @@ import 'package:toki_app/providers/meal_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/recipe_edit_screen.dart';
+import 'package:toki_app/screens/swap_meal_recipe_screen.dart';
 import 'package:toki_app/types/meal_type.dart';
 import 'package:toki_app/types/unit_type.dart';
 import 'package:toki_app/types/weekday.dart';
@@ -60,21 +61,36 @@ class _MealScreenState extends State<MealScreen> {
       appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(mealProvider.recipe?.title ?? widget.weeklyMeal.title),
-          actions: [
-            if (mealProvider.recipeDetails != null)
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          RecipeEditScreen(mealProvider.recipeDetails!),
-                    ),
-                  );
-                },
-                icon: Icon(Icons.edit),
-              )
-          ]),
+          actions: mealProvider.isInitialized
+              ? [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SwapMealRecipeScreen(
+                            mealProvider.meal!,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.swap_horiz),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipeEditScreen(
+                            mealProvider.recipeDetails!,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.edit),
+                  )
+                ]
+              : []),
       body: Builder(
         builder: (context) {
           if (!mealProvider.isInitialized || mealProvider.loading) {

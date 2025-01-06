@@ -31,17 +31,18 @@ class PlannedMeal with PlannedMealJsonSerializable {
         servings = json['servings'];
 
   PlannedMeal copyWith({
-    required MealType mealType,
-    required int servings,
-    required DateTime mealDate,
+    String? recipeId,
+    MealType? mealType,
+    int? servings,
+    DateTime? mealDate,
   }) {
     return PlannedMeal(
       id,
       userId,
-      recipeId,
-      mealDate,
-      mealType,
-      servings,
+      recipeId ?? this.recipeId,
+      mealDate ?? this.mealDate,
+      mealType ?? this.mealType,
+      servings ?? this.servings,
     );
   }
 }

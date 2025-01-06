@@ -24,7 +24,7 @@ class ServingsInput extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              '$servings servings',
+              '$servings serving${servings == 1 ? "" : "s"}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),

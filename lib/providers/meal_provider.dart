@@ -37,16 +37,24 @@ class MealProvider extends LoadingChangeNotifier {
 
   Future<void> initData(String mealId, String recipeId) async {
     await withLoading(() async {
-      await Future.wait([initMeal(mealId), initRecipeDetails(recipeId)]);
+      await Future.wait([_initMeal(mealId), _initRecipeDetails(recipeId)]);
     });
   }
 
-  Future<void> initMeal(String mealId) async {
+  Future<void> _initMeal(String mealId) async {
     _meal = await mealService.fetchPlannedMeal(mealId);
   }
 
-  Future<void> initRecipeDetails(String recipeId) async {
+  Future<void> _initRecipeDetails(String recipeId) async {
     _recipeDetails = await recipeService.fetchRecipeDetails(recipeId);
+  }
+
+  Future<void> fetchRecipeDetails(String recipeId) async {
+    await withLoading(
+      () async {
+        await _initRecipeDetails(recipeId);
+      },
+    );
   }
 
   Future<void> updateMeal(PlannedMeal meal) async {

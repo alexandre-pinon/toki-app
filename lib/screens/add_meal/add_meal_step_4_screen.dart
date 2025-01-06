@@ -33,7 +33,7 @@ class AddMealStep4Screen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final servingsController = ValueNotifier(0);
+    final servingsController = ValueNotifier(1);
 
     return Scaffold(
       appBar: AppBar(

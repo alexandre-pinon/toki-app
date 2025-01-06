@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/models/imported_recipe.dart';
 import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/repositories/token_repository.dart';
@@ -124,6 +125,32 @@ class RecipeService {
         throw Unauthenticated();
       default:
         throw Exception('Delete recipe failed');
+    }
+  }
+
+  Future<ImportedRecipe> importRecipe(String recipeUrl) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/import'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      },
+      body: jsonEncode({'url': recipeUrl}),
+    );
+
+    switch (response.statusCode) {
+      case 200:
+        final json = jsonDecode(response.body);
+        return ImportedRecipe.fromJson(json);
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Import recipe failed');
     }
   }
 }
