@@ -406,6 +406,7 @@ class RecipeInstructions extends StatelessWidget {
         SizedBox(height: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
           children: instructions
               .map((instruction) => RecipeInstruction(instruction))
               .toList(),
