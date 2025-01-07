@@ -11,6 +11,8 @@ import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/types/weekday.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
+import 'package:toki_app/widgets/shopping_list.dart';
+import 'package:toki_app/widgets/weekly_meals.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +22,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int currentPageIndex = 0;
+
   Future<void> fetchMealData() async {
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
     final authProvider = context.read<AuthProvider>();
@@ -44,33 +48,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('Weekly meals'),
+        title: Text([
+          'Weekly meals',
+          'Shopping list',
+        ][currentPageIndex]),
       ),
-      body: Builder(
-        builder: (context) {
-          final weeklyMealsProvider = context.watch<WeeklyMealsProvider>();
-
-          if (weeklyMealsProvider.loading) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final mealsByDay = groupBy(
-            weeklyMealsProvider.meals,
-            (meal) => meal.mealDate,
-          );
-          return ListView(
-            children: mealsByDay.entries
-                .sortedBy((entry) => entry.key) // by meal date
-                .map((entry) => DayMeals(
-                      day: Weekday.fromDatetimeWeekday(
-                        entry.key.weekday,
-                      ),
-                      meals: entry.value,
-                    ))
-                .toList(),
-          );
-        },
-      ),
+      body: [
+        WeeklyMeals(),
+        ShoppingList(),
+      ][currentPageIndex],
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -81,85 +67,26 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: CircleBorder(),
         child: Icon(Icons.add),
       ),
-    );
-  }
-}
-
-class DayMeals extends StatelessWidget {
-  final Weekday day;
-  final List<WeeklyPlannedMeal> meals;
-
-  const DayMeals({super.key, required this.day, required this.meals});
-
-  Future<void> _deleteMeal(BuildContext context, String mealId) async {
-    final mealService = context.read<PlannedMealService>();
-    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      await mealService.deletePlannedMeal(mealId);
-      await weeklyMealsProvider.fetchMeals();
-    } on Unauthenticated {
-      await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ListTile(
-          title: Text(day.displayName),
-        ),
-        ...meals.sortedBy((meal) => meal.mealType).map(
-              (meal) => Container(
-                margin: EdgeInsets.symmetric(horizontal: 8),
-                child: Dismissible(
-                  key: ValueKey(meal.id),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (direction) {
-                    final mealTitle = meal.title.toLowerCase();
-                    final weekDay = day.displayName.toLowerCase();
-                    return showConfirmationDialog(
-                      context: context,
-                      title: 'Remove $mealTitle from $weekDay meals?',
-                    );
-                  },
-                  onDismissed: (direction) {
-                    _deleteMeal(context, meal.id);
-                  },
-                  background: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.red,
-                    ),
-                  ),
-                  child: Card(
-                    child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.network(
-                          meal.imageUrl ?? 'https://placehold.co/64.png',
-                        ),
-                      ),
-                      title: Text(meal.title),
-                      subtitle: Text(meal.mealType.displayName),
-                      onTap: () {
-                        context.read<MealProvider>().resetData();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MealScreen(meal)),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-      ],
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          setState(() {
+            currentPageIndex = index;
+          });
+        },
+        selectedIndex: currentPageIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.restaurant),
+            label: 'Weekly meals',
+          ),
+          NavigationDestination(
+            selectedIcon: Icon(Icons.shopping_cart),
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: 'Shopping list',
+          )
+        ],
+      ),
     );
   }
 }
