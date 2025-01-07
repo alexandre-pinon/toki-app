@@ -36,6 +36,19 @@ enum Weekday implements Comparable<Weekday> {
     };
   }
 
+  factory Weekday.fromString(String value) {
+    return switch (value.toLowerCase()) {
+      "monday" => Weekday.monday,
+      "tuesday" => Weekday.tuesday,
+      "wednesday" => Weekday.wednesday,
+      "thursday" => Weekday.thursday,
+      "friday" => Weekday.friday,
+      "saturday" => Weekday.saturday,
+      "sunday" => Weekday.sunday,
+      _ => throw ArgumentError('Invalid Weekday value: $value')
+    };
+  }
+
   DateTime toClosestDate() {
     var dateTime = DateTime.now();
 

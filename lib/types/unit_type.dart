@@ -20,12 +20,6 @@ enum UnitType {
 
   @override
   String toString() {
-    return displayName;
-  }
-}
-
-extension StringExtension on UnitType {
-  String get displayName {
     return switch (this) {
       UnitType.ml => 'ml',
       UnitType.cl => 'cl',
@@ -47,10 +41,8 @@ extension StringExtension on UnitType {
       UnitType.unit => 'unit',
     };
   }
-}
 
-extension UnitTypeExtension on UnitType {
-  static UnitType fromString(String value) {
+  factory UnitType.fromString(String value) {
     return switch (value.toLowerCase()) {
       'ml' => UnitType.ml,
       'cl' => UnitType.cl,
@@ -71,6 +63,31 @@ extension UnitTypeExtension on UnitType {
       'to taste' => UnitType.totaste,
       'unit' => UnitType.unit,
       _ => throw ArgumentError('Invalid UnitType value: $value')
+    };
+  }
+}
+
+extension StringExtension on UnitType {
+  String get displayName {
+    return switch (this) {
+      UnitType.ml => 'ml',
+      UnitType.cl => 'cl',
+      UnitType.dl => 'dl',
+      UnitType.l => 'l',
+      UnitType.g => 'g',
+      UnitType.kg => 'kg',
+      UnitType.tsp => 'cuillère à café',
+      UnitType.tbsp => 'cuillère à soupe',
+      UnitType.cup => 'tasse',
+      UnitType.piece => 'pièce',
+      UnitType.pinch => 'pincée',
+      UnitType.bunch => 'botte',
+      UnitType.clove => 'gousse',
+      UnitType.can => 'boîte',
+      UnitType.package => 'sachet',
+      UnitType.slice => 'tranche',
+      UnitType.totaste => 'selon le goût',
+      UnitType.unit => 'unité',
     };
   }
 }

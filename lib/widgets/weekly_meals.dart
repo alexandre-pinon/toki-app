@@ -5,7 +5,6 @@ import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
-import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
 import 'package:toki_app/screens/meal_screen.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/types/weekday.dart';

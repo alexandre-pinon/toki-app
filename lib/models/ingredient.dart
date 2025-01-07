@@ -14,9 +14,7 @@ class Ingredient {
   Ingredient.fromJson(dynamic json)
       : name = json['name'],
         quantity = json['quantity'],
-        unit = json['unit'] != null
-            ? UnitTypeExtension.fromString(json['unit'])
-            : null;
+        unit = json['unit'] != null ? UnitType.fromString(json['unit']) : null;
 
   Map<String, dynamic> toJson() {
     return {

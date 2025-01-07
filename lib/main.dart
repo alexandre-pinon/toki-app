@@ -8,11 +8,13 @@ import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/recipes_provider.dart';
+import 'package:toki_app/providers/shopping_list_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/repositories/token_repository.dart';
 import 'package:toki_app/services/auth_service.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/services/recipe_service.dart';
+import 'package:toki_app/services/shopping_list_item_service.dart';
 
 //TODO: define as env variable
 const TOKI_API_HOST = '192.168.1.17';
@@ -49,6 +51,10 @@ void initApp() {
     baseUrl: '$TOKI_API_URL/recipes',
     tokenRepository: tokenRepository,
   );
+  final shoppingListItemService = ShoppingListItemService(
+    baseUrl: '$TOKI_API_URL/shopping-list-item',
+    tokenRepository: tokenRepository,
+  );
 
   final app = MultiProvider(
     providers: [
@@ -72,6 +78,11 @@ void initApp() {
       ),
       ChangeNotifierProvider(
         create: (context) => RecipesProvider(recipeService: recipeService),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => ShoppingListProvider(
+          shoppingListItemService: shoppingListItemService,
+        ),
       ),
       Provider(create: (context) => mealService),
       Provider(create: (context) => recipeService),
