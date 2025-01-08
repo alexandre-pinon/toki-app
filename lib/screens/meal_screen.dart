@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
-import 'package:toki_app/main.dart';
 import 'package:toki_app/models/ingredient.dart';
 import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/planned_meal.dart';
@@ -48,8 +47,6 @@ class _MealScreenState extends State<MealScreen> {
       );
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 
@@ -205,8 +202,6 @@ class _RecipeHeaderState extends State<RecipeHeader> {
       await weeklyMealsProvider.fetchMeals();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 

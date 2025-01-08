@@ -31,8 +31,6 @@ class RecipeCard extends StatelessWidget {
       ]);
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 

@@ -15,4 +15,12 @@ class ShoppingListProvider extends LoadingChangeNotifier {
       _items = await shoppingListItemService.fetchItems();
     });
   }
+
+  Future<void> toggleCheckItem(int index) async {
+    _items[index].checked
+        ? await shoppingListItemService.uncheckItem(_items[index])
+        : await shoppingListItemService.checkItem(_items[index]);
+    _items = await shoppingListItemService.fetchItems();
+    notifyListeners();
+  }
 }

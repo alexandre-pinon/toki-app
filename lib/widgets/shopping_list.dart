@@ -43,11 +43,13 @@ class _ShoppingListState extends State<ShoppingList> {
           return Center(child: CircularProgressIndicator());
         }
 
-        return ListView.builder(
+        return ListView.separated(
           itemCount: shoppingListProvider.items.length,
           itemBuilder: (context, index) => ItemCard(
-            shoppingListProvider.items[index],
+            item: shoppingListProvider.items[index],
+            index: index,
           ),
+          separatorBuilder: (context, index) => Divider(height: 0),
         );
       },
     );
@@ -56,11 +58,19 @@ class _ShoppingListState extends State<ShoppingList> {
 
 class ItemCard extends StatelessWidget {
   final ShoppingListItem item;
+  final int index;
 
-  const ItemCard(this.item, {super.key});
+  const ItemCard({super.key, required this.item, required this.index});
 
-  Future<void> _toggleItemCheck(bool? checked) async {
-    print(checked);
+  Future<void> _toggleItemCheck(BuildContext context) async {
+    final shoppingListProvider = context.read<ShoppingListProvider>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      shoppingListProvider.toggleCheckItem(index);
+    } on Unauthenticated {
+      await authProvider.logout();
+    }
   }
 
   String _formatUnit(UnitType? unit) {
@@ -76,7 +86,7 @@ class ItemCard extends StatelessWidget {
   }
 
   String _formatWeekday(Weekday? weekday) {
-    return weekday != null ? weekday.displayName : '';
+    return weekday != null ? weekday.minifiedDisplayName : '';
   }
 
   @override
@@ -84,14 +94,25 @@ class ItemCard extends StatelessWidget {
     final formattedUnit = _formatUnit(item.unit);
     final formattedQuantity = _formatQuantity(item.quantity);
     final formattedWeekday = _formatWeekday(item.weekday);
+    final theme = Theme.of(context);
 
-    return CheckboxListTile(
-      value: item.checked,
-      onChanged: _toggleItemCheck,
-      title: Text(item.name.capitalize()),
-      subtitle: Text(formattedWeekday.isEmpty
-          ? '$formattedQuantity $formattedUnit'
-          : '$formattedQuantity $formattedUnit - $formattedWeekday'),
+    return Container(
+      color: item.checked ? Colors.grey[300] : theme.listTileTheme.tileColor,
+      child: CheckboxListTile(
+        checkboxShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+        checkboxScaleFactor: 1.1,
+        controlAffinity: ListTileControlAffinity.leading,
+        value: item.checked,
+        onChanged: (_) async {
+          await _toggleItemCheck(context);
+        },
+        title: Text(item.name.capitalize()),
+        subtitle: Text(formattedWeekday.isEmpty
+            ? '$formattedQuantity $formattedUnit'
+            : '$formattedQuantity $formattedUnit - $formattedWeekday'),
+      ),
     );
   }
 }

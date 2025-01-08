@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
 import 'package:toki_app/errors/auth_error.dart';
-import 'package:toki_app/main.dart';
 import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/providers/auth_provider.dart';
@@ -86,8 +85,6 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
       navigator.pop();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 

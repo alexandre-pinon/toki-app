@@ -16,7 +16,7 @@ class RecipeService {
   Future<List<Recipe>> fetchRecipes() async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {
-      return throw Unauthenticated();
+      throw Unauthenticated();
     }
 
     final response = await http.get(
@@ -38,7 +38,7 @@ class RecipeService {
   Future<RecipeDetails> fetchRecipeDetails(String id) async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {
-      return throw Unauthenticated();
+      throw Unauthenticated();
     }
 
     final response = await http.get(

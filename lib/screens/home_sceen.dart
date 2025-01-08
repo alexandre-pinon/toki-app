@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
-import 'package:toki_app/main.dart';
-import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
-import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
-import 'package:toki_app/screens/meal_screen.dart';
-import 'package:toki_app/services/planned_meal_service.dart';
-import 'package:toki_app/types/weekday.dart';
 import 'package:provider/provider.dart';
-import 'package:collection/collection.dart';
 import 'package:toki_app/widgets/shopping_list.dart';
 import 'package:toki_app/widgets/weekly_meals.dart';
 
@@ -32,8 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
       await weeklyMealsProvider.fetchMeals();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 

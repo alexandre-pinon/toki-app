@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
-import 'package:toki_app/main.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
@@ -34,8 +33,6 @@ class SwapMealRecipeScreen extends StatelessWidget {
       navigator.pop();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 

@@ -17,7 +17,7 @@ class ShoppingListItemService {
   Future<List<ShoppingListItem>> fetchItems() async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {
-      return throw Unauthenticated();
+      throw Unauthenticated();
     }
 
     final response = await http.get(
@@ -34,5 +34,57 @@ class ShoppingListItemService {
       default:
         throw Exception('Fetch shopping list items failed');
     }
+  }
+
+  Future<void> checkItem(ShoppingListItem item) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final responses = await Future.wait(
+      item.ids.map(
+        (id) => http.put(
+          Uri.parse('$baseUrl/$id/check'),
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      ),
+    );
+
+    if (responses.every((response) => response.statusCode == 204)) {
+      return;
+    }
+
+    if (responses.any((response) => response.statusCode == 401)) {
+      throw Unauthenticated();
+    }
+
+    throw Exception('Check shopping list item failed');
+  }
+
+  Future<void> uncheckItem(ShoppingListItem item) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final responses = await Future.wait(
+      item.ids.map(
+        (id) => http.put(
+          Uri.parse('$baseUrl/$id/uncheck'),
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      ),
+    );
+
+    if (responses.every((response) => response.statusCode == 204)) {
+      return;
+    }
+
+    if (responses.any((response) => response.statusCode == 401)) {
+      throw Unauthenticated();
+    }
+
+    throw Exception('Uncheck shopping list item failed');
   }
 }

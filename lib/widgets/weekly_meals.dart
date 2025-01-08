@@ -27,8 +27,6 @@ class _WeeklyMealsState extends State<WeeklyMeals> {
       await weeklyMealsProvider.fetchMeals();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 
@@ -84,8 +82,6 @@ class DayMeals extends StatelessWidget {
       await weeklyMealsProvider.fetchMeals();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 

@@ -2,8 +2,8 @@ import 'package:toki_app/types/unit_type.dart';
 import 'package:toki_app/types/weekday.dart';
 
 class ShoppingListItem {
-  List<String> ids;
-  final bool checked;
+  final List<String> ids;
+  bool checked;
   final String name;
   final double? quantity;
   final UnitType? unit;
@@ -32,4 +32,8 @@ class ShoppingListItem {
             : null,
         mealDate = DateTime.parse(json['meal_date'])
             .copyWith(isUtc: true); // force date parse as UTC
+
+  void toggleChecked() {
+    checked = !checked;
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
-import 'package:toki_app/main.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/recipes_provider.dart';
 import 'package:toki_app/screens/recipe_add_screen.dart';
@@ -28,8 +27,6 @@ class _RecipeListState extends State<RecipeList> {
       await recipesProvider.fetchRecipes();
     } on Unauthenticated {
       await authProvider.logout();
-    } catch (error) {
-      showGlobalSnackBar(error.toString());
     }
   }
 
