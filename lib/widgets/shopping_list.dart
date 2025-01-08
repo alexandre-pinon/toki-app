@@ -21,7 +21,7 @@ class _ShoppingListState extends State<ShoppingList> {
     final authProvider = context.read<AuthProvider>();
 
     try {
-      await shoppingListProvider.fetchItems();
+      await shoppingListProvider.fetchInitialItems();
     } on Unauthenticated {
       await authProvider.logout();
     }
@@ -94,10 +94,21 @@ class ItemCard extends StatelessWidget {
     final formattedUnit = _formatUnit(item.unit);
     final formattedQuantity = _formatQuantity(item.quantity);
     final formattedWeekday = _formatWeekday(item.weekday);
-    final theme = Theme.of(context);
+    var subtitle = '';
+    if (formattedQuantity.isNotEmpty) {
+      subtitle += '$formattedQuantity ';
+    }
+    if (formattedUnit.isNotEmpty) {
+      subtitle += '$formattedUnit ';
+    }
+    if (formattedWeekday.isNotEmpty) {
+      subtitle += subtitle.isEmpty ? formattedWeekday : '- $formattedWeekday';
+    }
 
     return Container(
-      color: item.checked ? Colors.grey[300] : theme.listTileTheme.tileColor,
+      color: item.checked
+          ? Colors.grey[300]
+          : Theme.of(context).listTileTheme.tileColor,
       child: CheckboxListTile(
         checkboxShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
@@ -109,9 +120,7 @@ class ItemCard extends StatelessWidget {
           await _toggleItemCheck(context);
         },
         title: Text(item.name.capitalize()),
-        subtitle: Text(formattedWeekday.isEmpty
-            ? '$formattedQuantity $formattedUnit'
-            : '$formattedQuantity $formattedUnit - $formattedWeekday'),
+        subtitle: subtitle.isEmpty ? null : Text(subtitle),
       ),
     );
   }

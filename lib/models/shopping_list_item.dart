@@ -3,7 +3,7 @@ import 'package:toki_app/types/weekday.dart';
 
 class ShoppingListItem {
   final List<String> ids;
-  bool checked;
+  final bool checked;
   final String name;
   final double? quantity;
   final UnitType? unit;
@@ -30,10 +30,7 @@ class ShoppingListItem {
         weekday = json['week_day'] != null
             ? Weekday.fromString(json['week_day'])
             : null,
-        mealDate = DateTime.parse(json['meal_date'])
-            .copyWith(isUtc: true); // force date parse as UTC
-
-  void toggleChecked() {
-    checked = !checked;
-  }
+        mealDate = json['meal_date'] != null
+            ? DateTime.parse(json['meal_date']).copyWith(isUtc: true)
+            : null; // force date parse as UTC
 }

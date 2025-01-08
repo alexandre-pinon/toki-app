@@ -5,6 +5,7 @@ import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/widgets/shopping_list.dart';
+import 'package:toki_app/widgets/shopping_list_item_form.dart';
 import 'package:toki_app/widgets/weekly_meals.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -50,10 +51,18 @@ class _HomeScreenState extends State<HomeScreen> {
       ][currentPageIndex],
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddMealStep1Screen()),
-          );
+          switch (currentPageIndex) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddMealStep1Screen()),
+              );
+            case 1:
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => ShoppingListItemForm(),
+              );
+          }
         },
         shape: CircleBorder(),
         child: Icon(Icons.add),
