@@ -7,6 +7,7 @@ import 'package:toki_app/providers/shopping_list_provider.dart';
 import 'package:toki_app/types/string.dart';
 import 'package:toki_app/types/unit_type.dart';
 import 'package:toki_app/types/weekday.dart';
+import 'package:toki_app/widgets/shopping_list_item_form.dart';
 
 class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
@@ -101,27 +102,40 @@ class ItemCard extends StatelessWidget {
     if (formattedUnit.isNotEmpty) {
       subtitle += '$formattedUnit ';
     }
-    if (formattedWeekday.isNotEmpty) {
-      subtitle += subtitle.isEmpty ? formattedWeekday : '- $formattedWeekday';
-    }
 
-    return Container(
-      color: item.checked
-          ? Colors.grey[300]
-          : Theme.of(context).listTileTheme.tileColor,
-      child: CheckboxListTile(
-        checkboxShape: RoundedRectangleBorder(
+    return ListTile(
+      tileColor: item.checked ? Colors.grey[300] : null,
+      leading: Checkbox(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
-        checkboxScaleFactor: 1.1,
-        controlAffinity: ListTileControlAffinity.leading,
         value: item.checked,
         onChanged: (_) async {
           await _toggleItemCheck(context);
         },
-        title: Text(item.name.capitalize()),
-        subtitle: subtitle.isEmpty ? null : Text(subtitle),
       ),
+      title: Text(item.name.capitalize()),
+      subtitle: subtitle.isEmpty ? null : Text(subtitle),
+      onTap: () {
+        item.canBeEdited
+            ? showModalBottomSheet(
+                context: context,
+                builder: (context) => ShoppingListItemForm(item: item),
+              )
+            : _toggleItemCheck(context);
+      },
+      trailing: formattedWeekday.isNotEmpty
+          ? Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Theme.of(context).dividerColor),
+              ),
+              child: Text(formattedWeekday),
+            )
+          : null,
     );
   }
 }

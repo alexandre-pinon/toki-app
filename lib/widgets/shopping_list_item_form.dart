@@ -2,27 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/models/ingredient.dart';
+import 'package:toki_app/models/shopping_list_item.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/shopping_list_provider.dart';
 import 'package:toki_app/types/unit_type.dart';
 
-class ShoppingListItemForm extends StatelessWidget {
-  final _ingredientController = IngredientController.empty();
+class ShoppingListItemForm extends StatefulWidget {
+  final ShoppingListItem? item;
 
-  ShoppingListItemForm({super.key});
+  const ShoppingListItemForm({super.key, this.item});
 
-  Future<void> _createShoppingListItem(BuildContext context) async {
+  @override
+  State<ShoppingListItemForm> createState() => _ShoppingListItemFormState();
+}
+
+class _ShoppingListItemFormState extends State<ShoppingListItemForm> {
+  late final IngredientController _ingredientController;
+
+  Future<void> _upsertShoppingListItem(BuildContext context) async {
     final shoppingListProvider = context.read<ShoppingListProvider>();
     final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
     try {
-      await shoppingListProvider.addNewItem(_ingredientController.value);
+      widget.item != null
+          ? await shoppingListProvider.editItemIngredient(
+              widget.item!.ids,
+              _ingredientController.value,
+            )
+          : await shoppingListProvider.addNewItem(_ingredientController.value);
     } on Unauthenticated {
       await authProvider.logout();
     } finally {
       navigator.pop();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _ingredientController = widget.item != null
+        ? IngredientController.fromIngredient(
+            Ingredient(
+              widget.item!.name,
+              widget.item!.quantity,
+              widget.item!.unit,
+            ),
+          )
+        : IngredientController.empty();
+  }
+
+  @override
+  void dispose() {
+    _ingredientController.dispose();
+    super.dispose();
   }
 
   @override
@@ -33,7 +67,7 @@ class ShoppingListItemForm extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Add new item',
+            widget.item != null ? 'Edit item' : 'Add new item',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           SizedBox(height: 12),
@@ -101,10 +135,10 @@ class ShoppingListItemForm extends StatelessWidget {
               ),
               FilledButton(
                 onPressed: () async {
-                  await _createShoppingListItem(context);
+                  await _upsertShoppingListItem(context);
                 },
-                child: Text('Add'),
-              ),
+                child: Text('Save'),
+              )
             ],
           ),
         ],

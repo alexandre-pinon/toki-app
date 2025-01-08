@@ -33,4 +33,12 @@ class ShoppingListProvider extends LoadingChangeNotifier {
     await shoppingListItemService.createItem(input);
     await _refetchItems();
   }
+
+  Future<void> editItemIngredient(
+    List<String> itemIds,
+    Ingredient input,
+  ) async {
+    await shoppingListItemService.updateItemIngredient(itemIds, input);
+    await _refetchItems();
+  }
 }

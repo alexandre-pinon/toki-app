@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentPageIndex = 0;
 
-  Future<void> fetchMealData() async {
+  Future<void> _fetchMealData() async {
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
     final authProvider = context.read<AuthProvider>();
 
@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => fetchMealData());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchMealData());
   }
 
   @override

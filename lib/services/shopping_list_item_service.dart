@@ -62,6 +62,38 @@ class ShoppingListItemService {
     }
   }
 
+  Future<void> updateItemIngredient(
+    List<String> itemIds,
+    Ingredient input,
+  ) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    if (itemIds.length != 1) {
+      throw Exception('Can\'t update item linked to several ids');
+    }
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/${itemIds[0]}'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      },
+      body: jsonEncode(input.toJson()),
+    );
+
+    switch (response.statusCode) {
+      case 200:
+        return;
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Update shopping list item failed');
+    }
+  }
+
   Future<void> checkItem(ShoppingListItem item) async {
     final accessToken = await tokenRepository.getAccessToken();
     if (accessToken == null) {

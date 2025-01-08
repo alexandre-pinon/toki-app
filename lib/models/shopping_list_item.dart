@@ -33,4 +33,7 @@ class ShoppingListItem {
         mealDate = json['meal_date'] != null
             ? DateTime.parse(json['meal_date']).copyWith(isUtc: true)
             : null; // force date parse as UTC
+
+  bool get canBeEdited =>
+      mealDate == null && weekday == null && ids.length == 1;
 }
