@@ -36,4 +36,7 @@ class ShoppingListItem {
 
   bool get canBeEdited =>
       mealDate == null && weekday == null && ids.length == 1;
+
+  bool get canBeDeleted =>
+      mealDate == null && weekday == null && ids.length == 1;
 }

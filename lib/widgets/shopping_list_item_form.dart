@@ -28,7 +28,7 @@ class _ShoppingListItemFormState extends State<ShoppingListItemForm> {
     try {
       widget.item != null
           ? await shoppingListProvider.editItemIngredient(
-              widget.item!.ids,
+              widget.item!.ids[0],
               _ingredientController.value,
             )
           : await shoppingListProvider.addNewItem(_ingredientController.value);

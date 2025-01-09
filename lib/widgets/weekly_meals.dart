@@ -109,11 +109,15 @@ class DayMeals extends StatelessWidget {
                   onDismissed: (direction) {
                     _deleteMeal(context, meal.id);
                   },
+                  dismissThresholds: {DismissDirection.endToStart: 0.2},
                   background: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       color: Colors.red,
                     ),
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Icon(Icons.delete),
                   ),
                   child: Card(
                     child: ListTile(

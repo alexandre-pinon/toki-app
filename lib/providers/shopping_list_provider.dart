@@ -35,10 +35,15 @@ class ShoppingListProvider extends LoadingChangeNotifier {
   }
 
   Future<void> editItemIngredient(
-    List<String> itemIds,
+    String itemId,
     Ingredient input,
   ) async {
-    await shoppingListItemService.updateItemIngredient(itemIds, input);
+    await shoppingListItemService.updateItemIngredient(itemId, input);
+    await _refetchItems();
+  }
+
+  Future<void> removeItem(String itemId) async {
+    await shoppingListItemService.deleteItem(itemId);
     await _refetchItems();
   }
 }

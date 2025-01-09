@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/main.dart';
 import 'package:toki_app/models/shopping_list_item.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/shopping_list_provider.dart';
@@ -74,6 +75,17 @@ class ItemCard extends StatelessWidget {
     }
   }
 
+  Future<void> _removeShoppingListItem(BuildContext context) async {
+    final shoppingListProvider = context.read<ShoppingListProvider>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      await shoppingListProvider.removeItem(item.ids[0]);
+    } on Unauthenticated {
+      await authProvider.logout();
+    }
+  }
+
   String _formatUnit(UnitType? unit) {
     return unit != null ? unit.displayName : '';
   }
@@ -103,39 +115,61 @@ class ItemCard extends StatelessWidget {
       subtitle += '$formattedUnit ';
     }
 
-    return ListTile(
-      tileColor: item.checked ? Colors.grey[300] : null,
-      leading: Checkbox(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
-        value: item.checked,
-        onChanged: (_) async {
-          await _toggleItemCheck(context);
-        },
-      ),
-      title: Text(item.name.capitalize()),
-      subtitle: subtitle.isEmpty ? null : Text(subtitle),
-      onTap: () {
-        item.canBeEdited
-            ? showModalBottomSheet(
-                context: context,
-                builder: (context) => ShoppingListItemForm(item: item),
-              )
-            : _toggleItemCheck(context);
+    return Dismissible(
+      key: ValueKey(item.ids),
+      direction: item.canBeDeleted
+          ? DismissDirection.endToStart
+          : DismissDirection.none,
+      confirmDismiss: (direction) {
+        return showConfirmationDialog(
+          context: context,
+          title: 'Remove ${item.name}?',
+        );
       },
-      trailing: formattedWeekday.isNotEmpty
-          ? Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Theme.of(context).dividerColor),
-              ),
-              child: Text(formattedWeekday),
-            )
-          : null,
+      onDismissed: (direction) {
+        _removeShoppingListItem(context);
+      },
+      dismissThresholds: {DismissDirection.endToStart: 0.2},
+      background: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        color: Colors.red,
+        alignment: AlignmentDirectional.centerEnd,
+        child: Icon(Icons.delete),
+      ),
+      child: ListTile(
+        tileColor: item.checked ? Colors.grey[300] : null,
+        leading: Checkbox(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          value: item.checked,
+          onChanged: (_) {
+            _toggleItemCheck(context);
+          },
+        ),
+        title: Text(item.name.capitalize()),
+        subtitle: subtitle.isEmpty ? null : Text(subtitle),
+        onTap: () {
+          item.canBeEdited
+              ? showModalBottomSheet(
+                  context: context,
+                  builder: (context) => ShoppingListItemForm(item: item),
+                )
+              : _toggleItemCheck(context);
+        },
+        trailing: formattedWeekday.isNotEmpty
+            ? Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                ),
+                child: Text(formattedWeekday),
+              )
+            : null,
+      ),
     );
   }
 }

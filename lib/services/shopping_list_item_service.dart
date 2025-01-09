@@ -63,7 +63,7 @@ class ShoppingListItemService {
   }
 
   Future<void> updateItemIngredient(
-    List<String> itemIds,
+    String itemId,
     Ingredient input,
   ) async {
     final accessToken = await tokenRepository.getAccessToken();
@@ -71,12 +71,8 @@ class ShoppingListItemService {
       throw Unauthenticated();
     }
 
-    if (itemIds.length != 1) {
-      throw Exception('Can\'t update item linked to several ids');
-    }
-
     final response = await http.put(
-      Uri.parse('$baseUrl/${itemIds[0]}'),
+      Uri.parse('$baseUrl/$itemId'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-type': 'application/json'
@@ -144,5 +140,26 @@ class ShoppingListItemService {
     }
 
     throw Exception('Uncheck shopping list item failed');
+  }
+
+  Future<void> deleteItem(String itemId) async {
+    final accessToken = await tokenRepository.getAccessToken();
+    if (accessToken == null) {
+      throw Unauthenticated();
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$itemId'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    switch (response.statusCode) {
+      case 204:
+        return;
+      case 401:
+        throw Unauthenticated();
+      default:
+        throw Exception('Delete shopping list item failed');
+    }
   }
 }
