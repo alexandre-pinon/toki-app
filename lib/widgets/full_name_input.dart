@@ -9,7 +9,6 @@ class FullNameInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: fullNameController,
-      keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
         filled: true,
         prefixIcon: Icon(Icons.account_circle),

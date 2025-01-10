@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/providers/auth_provider.dart';
+import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:toki_app/screens/profile_screen.dart';
 import 'package:toki_app/widgets/shopping_list.dart';
 import 'package:toki_app/widgets/shopping_list_item_form.dart';
 import 'package:toki_app/widgets/weekly_meals.dart';
@@ -29,14 +31,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _fetchLoggedInUser() async {
+    final userProvider = context.read<UserProvider>();
+    final authProvider = context.read<AuthProvider>();
+
+    try {
+      await userProvider.getProfile();
+    } on Unauthenticated {
+      await authProvider.logout();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchMealData());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchLoggedInUser());
   }
 
   @override
   Widget build(BuildContext context) {
+    final loggerInUser = context.watch<UserProvider>().user;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -44,6 +60,21 @@ class _HomeScreenState extends State<HomeScreen> {
           'Weekly meals',
           'Shopping list',
         ][currentPageIndex]),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+            child: CircleAvatar(
+              child: Text(loggerInUser != null ? loggerInUser.initials : ''),
+            ),
+          )
+        ],
       ),
       body: [
         WeeklyMeals(),
