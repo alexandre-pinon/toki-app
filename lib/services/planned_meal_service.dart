@@ -1,144 +1,86 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/errors/meal_already_exist_error.dart';
 import 'package:toki_app/models/planned_meal.dart';
-import 'package:toki_app/repositories/token_repository.dart';
+import 'package:toki_app/services/api_client.dart';
 import 'package:toki_app/types/weekday.dart';
 
 class PlannedMealService {
-  final String baseUrl;
-  final TokenRepository tokenRepository;
+  static const basePath = '/planned-meals';
+  final ApiClient apiClient;
 
-  PlannedMealService({required this.baseUrl, required this.tokenRepository});
+  PlannedMealService({required this.apiClient});
 
   Future<List<WeeklyPlannedMeal>> fetchWeeklyPlannedMeals(
     DateTime from,
     DateTime to,
   ) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
     final queryParameters = {
       'start_date': from.toIso8601String(),
       'end_date': to.toIso8601String(),
     };
-    final response = await http.get(
-      Uri.parse(baseUrl).replace(queryParameters: queryParameters),
-      headers: {'Authorization': 'Bearer $accessToken'},
+    final response = await apiClient.get(
+      Uri.parse(basePath).replace(queryParameters: queryParameters).toString(),
     );
 
-    switch (response.statusCode) {
-      case 200:
-        final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map(WeeklyPlannedMeal.fromJson).toList();
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Fetch weekly planned meals failed');
+    if (response.statusCode != 200) {
+      throw Exception('Cannot retrieve weekly meals for the moment');
     }
+
+    final List<dynamic> jsonList = jsonDecode(response.body);
+    return jsonList.map(WeeklyPlannedMeal.fromJson).toList();
   }
 
   Future<PlannedMeal> fetchPlannedMeal(String id) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
+    final response = await apiClient.get('$basePath/$id');
+
+    if (response.statusCode != 200) {
+      throw Exception('Cannot retrieve this meal for the moment');
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/$id'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 200:
-        final dynamic json = jsonDecode(response.body);
-        return PlannedMeal.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Fetch planned meal $id failed');
-    }
+    final dynamic json = jsonDecode(response.body);
+    return PlannedMeal.fromJson(json);
   }
 
   Future<PlannedMeal> createPlannedMeal(PlannedMealCreateInput input) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode(input.toJson()),
+    final response = await apiClient.post(
+      basePath,
+      body: input.toJson(),
     );
 
     switch (response.statusCode) {
       case 201:
         final json = jsonDecode(response.body);
         return PlannedMeal.fromJson(json);
-      case 401:
-        throw Unauthenticated();
       case 409:
         throw MealAlreadyExist(
           Weekday.fromDatetimeWeekday(input.mealDate.weekday),
           input.mealType,
         );
       default:
-        throw Exception('Create planned meal failed');
+        throw Exception('Cannot create a new meal for the moment');
     }
   }
 
   Future<PlannedMeal> updatePlannedMeal(PlannedMeal meal) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/${meal.id}'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode(meal.toJson()),
+    final response = await apiClient.put(
+      '$basePath/${meal.id}',
+      body: meal.toJson(),
     );
 
-    switch (response.statusCode) {
-      case 200:
-        final json = jsonDecode(response.body);
-        return PlannedMeal.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Update planned meal failed');
+    if (response.statusCode != 200) {
+      throw Exception('Cannot update this meal for the moment');
     }
+
+    final json = jsonDecode(response.body);
+    return PlannedMeal.fromJson(json);
   }
 
   Future<void> deletePlannedMeal(String mealId) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
+    final response = await apiClient.delete('$basePath/$mealId');
 
-    final response = await http.delete(
-      Uri.parse('$baseUrl/$mealId'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 204:
-        return;
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Delete planned meal failed');
+    if (response.statusCode != 204) {
+      throw Exception('Cannot delete this meal for the moment');
     }
   }
 }

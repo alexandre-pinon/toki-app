@@ -1,156 +1,85 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/models/imported_recipe.dart';
 import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/models/recipe_details.dart';
-import 'package:toki_app/repositories/token_repository.dart';
+import 'package:toki_app/services/api_client.dart';
 
 class RecipeService {
-  final String baseUrl;
-  final TokenRepository tokenRepository;
+  static const basePath = '/recipes';
+  final ApiClient apiClient;
 
-  RecipeService({required this.baseUrl, required this.tokenRepository});
+  RecipeService({required this.apiClient});
 
   Future<List<Recipe>> fetchRecipes() async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
+    final response = await apiClient.get(basePath);
+
+    if (response.statusCode != 200) {
+      throw Exception('Cannot retrieve recipes for the moment');
     }
 
-    final response = await http.get(
-      Uri.parse(baseUrl),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 200:
-        final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map(Recipe.fromJson).toList();
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Fetch recipes failed');
-    }
+    final List<dynamic> jsonList = jsonDecode(response.body);
+    return jsonList.map(Recipe.fromJson).toList();
   }
 
   Future<RecipeDetails> fetchRecipeDetails(String id) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/$id'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
+    final response = await apiClient.get('$basePath/$id');
 
     if (response.statusCode != 200) {
-      throw Exception('Fetch recipe details failed');
+      throw Exception('Cannot retrieve this recipe for the moment');
     }
 
     final json = jsonDecode(response.body);
-
     return RecipeDetails.fromJson(json);
   }
 
   Future<RecipeDetails> createRecipe(RecipeDetailsCreateInput input) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode(input.toJson()),
+    final response = await apiClient.post(
+      basePath,
+      body: input.toJson(),
     );
 
-    switch (response.statusCode) {
-      case 201:
-        final json = jsonDecode(response.body);
-        return RecipeDetails.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Create recipe failed');
+    if (response.statusCode != 201) {
+      throw Exception('Cannot create a new recipe for the moment');
     }
+
+    final json = jsonDecode(response.body);
+    return RecipeDetails.fromJson(json);
   }
 
   Future<RecipeDetails> updateRecipe(RecipeDetails recipeDetails) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/${recipeDetails.recipe.id}'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode(recipeDetails.toJson()),
+    final response = await apiClient.put(
+      '$basePath/${recipeDetails.recipe.id}',
+      body: recipeDetails.toJson(),
     );
 
-    switch (response.statusCode) {
-      case 200:
-        final json = jsonDecode(response.body);
-        return RecipeDetails.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Update recipe failed');
+    if (response.statusCode != 200) {
+      throw Exception('Cannot update this recipe for the moment');
     }
+
+    final json = jsonDecode(response.body);
+    return RecipeDetails.fromJson(json);
   }
 
   Future<void> deleteRecipe(String recipeId) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
+    final response = await apiClient.delete('$basePath/$recipeId');
 
-    final response = await http.delete(
-      Uri.parse('$baseUrl/$recipeId'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 204:
-        return;
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Delete recipe failed');
+    if (response.statusCode != 204) {
+      throw Exception('Cannot delete this recipe for the moment');
     }
   }
 
   Future<ImportedRecipe> importRecipe(String recipeUrl) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/import'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode({'url': recipeUrl}),
+    final response = await apiClient.post(
+      '$basePath/import',
+      body: {'url': recipeUrl},
     );
 
-    switch (response.statusCode) {
-      case 200:
-        final json = jsonDecode(response.body);
-        return ImportedRecipe.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Import recipe failed');
+    if (response.statusCode != 200) {
+      throw Exception('Cannot import recipe for the moment');
     }
+
+    final json = jsonDecode(response.body);
+    return ImportedRecipe.fromJson(json);
   }
 }

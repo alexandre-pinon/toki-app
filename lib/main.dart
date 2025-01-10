@@ -12,6 +12,7 @@ import 'package:toki_app/providers/shopping_list_provider.dart';
 import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/repositories/token_repository.dart';
+import 'package:toki_app/services/api_client.dart';
 import 'package:toki_app/services/auth_service.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
 import 'package:toki_app/services/recipe_service.dart';
@@ -41,26 +42,19 @@ void main() {
 
 void initApp() {
   final tokenRepository = TokenRepository();
+  final apiClient = ApiClient(
+    baseUrl: TOKI_API_URL,
+    tokenRepository: tokenRepository,
+  );
+
   final authService = AuthService(
-    baseUrl: '$TOKI_API_URL/auth',
     tokenRepository: tokenRepository,
+    apiClient: apiClient,
   );
-  final mealService = PlannedMealService(
-    baseUrl: '$TOKI_API_URL/planned-meals',
-    tokenRepository: tokenRepository,
-  );
-  final recipeService = RecipeService(
-    baseUrl: '$TOKI_API_URL/recipes',
-    tokenRepository: tokenRepository,
-  );
-  final shoppingListItemService = ShoppingListItemService(
-    baseUrl: '$TOKI_API_URL/shopping-list-item',
-    tokenRepository: tokenRepository,
-  );
-  final userService = UserService(
-    baseUrl: '$TOKI_API_URL/users',
-    tokenRepository: tokenRepository,
-  );
+  final mealService = PlannedMealService(apiClient: apiClient);
+  final recipeService = RecipeService(apiClient: apiClient);
+  final shoppingListItemService = ShoppingListItemService(apiClient: apiClient);
+  final userService = UserService(apiClient: apiClient);
 
   final app = MultiProvider(
     providers: [

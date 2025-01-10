@@ -5,161 +5,72 @@ import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/models/ingredient.dart';
 import 'package:toki_app/models/shopping_list_item.dart';
 import 'package:toki_app/repositories/token_repository.dart';
+import 'package:toki_app/services/api_client.dart';
 
 class ShoppingListItemService {
-  final String baseUrl;
-  final TokenRepository tokenRepository;
+  static const basePath = '/shopping-list-item';
+  final ApiClient apiClient;
 
-  ShoppingListItemService({
-    required this.baseUrl,
-    required this.tokenRepository,
-  });
+  ShoppingListItemService({required this.apiClient});
 
   Future<List<ShoppingListItem>> fetchItems() async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
+    final response = await apiClient.get(basePath);
+
+    if (response.statusCode != 200) {
+      throw Exception('Cannot retrieve shopping list items for the moment');
     }
 
-    final response = await http.get(
-      Uri.parse(baseUrl),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 200:
-        final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map(ShoppingListItem.fromJson).toList();
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Fetch shopping list items failed');
-    }
+    final List<dynamic> jsonList = jsonDecode(response.body);
+    return jsonList.map(ShoppingListItem.fromJson).toList();
   }
 
   Future<void> createItem(Ingredient input) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode(input.toJson()),
+    final response = await apiClient.post(
+      basePath,
+      body: input.toJson(),
     );
 
-    switch (response.statusCode) {
-      case 201:
-        return;
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Create shopping list item failed');
+    if (response.statusCode != 201) {
+      throw Exception('Cannot create a new shopping list item for the moment');
     }
   }
 
-  Future<void> updateItemIngredient(
-    String itemId,
-    Ingredient input,
-  ) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/$itemId'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode(input.toJson()),
+  Future<void> updateItemIngredient(String itemId, Ingredient input) async {
+    final response = await apiClient.put(
+      '$basePath/$itemId',
+      body: input.toJson(),
     );
 
-    switch (response.statusCode) {
-      case 200:
-        return;
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Update shopping list item failed');
+    if (response.statusCode != 200) {
+      throw Exception('Cannot update this shopping list item for the moment');
     }
   }
 
   Future<void> checkItem(ShoppingListItem item) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
     final responses = await Future.wait(
-      item.ids.map(
-        (id) => http.put(
-          Uri.parse('$baseUrl/$id/check'),
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      ),
+      item.ids.map((id) => apiClient.put('$basePath/$id/check')),
     );
 
-    if (responses.every((response) => response.statusCode == 204)) {
-      return;
+    if (responses.any((response) => response.statusCode != 204)) {
+      throw Exception('Cannot check this shopping list item for the moment');
     }
-
-    if (responses.any((response) => response.statusCode == 401)) {
-      throw Unauthenticated();
-    }
-
-    throw Exception('Check shopping list item failed');
   }
 
   Future<void> uncheckItem(ShoppingListItem item) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
     final responses = await Future.wait(
-      item.ids.map(
-        (id) => http.put(
-          Uri.parse('$baseUrl/$id/uncheck'),
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      ),
+      item.ids.map((id) => apiClient.put('$basePath/$id/uncheck')),
     );
 
-    if (responses.every((response) => response.statusCode == 204)) {
-      return;
+    if (responses.any((response) => response.statusCode != 204)) {
+      throw Exception('Cannot uncheck this shopping list item for the moment');
     }
-
-    if (responses.any((response) => response.statusCode == 401)) {
-      throw Unauthenticated();
-    }
-
-    throw Exception('Uncheck shopping list item failed');
   }
 
   Future<void> deleteItem(String itemId) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
+    final response = await apiClient.delete('$basePath/$itemId');
 
-    final response = await http.delete(
-      Uri.parse('$baseUrl/$itemId'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 204:
-        return;
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Delete shopping list item failed');
+    if (response.statusCode != 204) {
+      throw Exception('Cannot delete this shopping list item for the moment');
     }
   }
 }

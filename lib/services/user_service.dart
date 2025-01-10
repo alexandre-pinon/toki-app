@@ -1,61 +1,36 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/models/user.dart';
-import 'package:toki_app/repositories/token_repository.dart';
+import 'package:toki_app/services/api_client.dart';
 
 class UserService {
-  final String baseUrl;
-  final TokenRepository tokenRepository;
+  static const basePath = '/users';
+  final ApiClient apiClient;
 
-  UserService({required this.baseUrl, required this.tokenRepository});
+  UserService({required this.apiClient});
 
   Future<User> getProfile() async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
+    final response = await apiClient.get('$basePath/me');
+
+    if (response.statusCode != 200) {
+      throw Exception('Cannot retrieve your profile for the moment');
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/me'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    switch (response.statusCode) {
-      case 200:
-        final json = jsonDecode(response.body);
-        return User.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Get user profile failed');
-    }
+    final json = jsonDecode(response.body);
+    return User.fromJson(json);
   }
 
   Future<User> updateProfile(String name) async {
-    final accessToken = await tokenRepository.getAccessToken();
-    if (accessToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/me'),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      },
-      body: jsonEncode({'name': name}),
+    final response = await apiClient.put(
+      '$basePath/me',
+      body: {'name': name},
     );
 
-    switch (response.statusCode) {
-      case 200:
-        final json = jsonDecode(response.body);
-        return User.fromJson(json);
-      case 401:
-        throw Unauthenticated();
-      default:
-        throw Exception('Update user profile failed');
+    if (response.statusCode != 200) {
+      throw Exception('Cannot update your profile for the moment');
     }
+
+    final json = jsonDecode(response.body);
+    return User.fromJson(json);
   }
 }
