@@ -150,41 +150,45 @@ class _RecipeAddScreenState extends State<RecipeAddScreen> {
         onPressed: () {
           showModalBottomSheet<String>(
             context: context,
+            isScrollControlled: true,
             builder: (context) => Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Import Recipe',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: _urlController,
-                    decoration: InputDecoration(
-                      hintText: 'https://super-delicious-recipe.com',
-                      border: OutlineInputBorder(),
+              padding: MediaQuery.of(context).viewInsets,
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Import Recipe',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    spacing: 12,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text('Cancel'),
+                    SizedBox(height: 12),
+                    TextField(
+                      controller: _urlController,
+                      decoration: InputDecoration(
+                        hintText: 'https://super-delicious-recipe.com',
+                        border: OutlineInputBorder(),
                       ),
-                      FilledButton(
-                        onPressed: () async {
-                          await _importRecipe(context);
-                        },
-                        child: Text('Import'),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      spacing: 12,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('Cancel'),
+                        ),
+                        FilledButton(
+                          onPressed: () async {
+                            await _importRecipe(context);
+                          },
+                          child: Text('Import'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );

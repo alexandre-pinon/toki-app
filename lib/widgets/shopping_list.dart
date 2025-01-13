@@ -18,7 +18,13 @@ class ShoppingList extends StatefulWidget {
 }
 
 class _ShoppingListState extends State<ShoppingList> {
-  Future<void> fetchItems() async {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_fetchItems);
+  }
+
+  Future<void> _fetchItems() async {
     final shoppingListProvider = context.read<ShoppingListProvider>();
     final authProvider = context.read<AuthProvider>();
 
@@ -27,12 +33,6 @@ class _ShoppingListState extends State<ShoppingList> {
     } on Unauthenticated {
       await authProvider.logout();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => fetchItems());
   }
 
   @override
@@ -153,6 +153,7 @@ class ItemCard extends StatelessWidget {
           item.canBeEdited
               ? showModalBottomSheet(
                   context: context,
+                  isScrollControlled: true,
                   builder: (context) => ShoppingListItemForm(item: item),
                 )
               : _toggleItemCheck(context);

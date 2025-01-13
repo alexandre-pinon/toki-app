@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/app.dart';
 import 'package:toki_app/providers/auth_provider.dart';
@@ -19,10 +21,6 @@ import 'package:toki_app/services/recipe_service.dart';
 import 'package:toki_app/services/shopping_list_item_service.dart';
 import 'package:toki_app/services/user_service.dart';
 
-//TODO: define as env variable
-const TOKI_API_HOST = '192.168.1.17';
-const TOKI_API_URL = 'http://$TOKI_API_HOST:3000';
-
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
@@ -34,16 +32,28 @@ void main() {
   };
 
   // catch all async errors
-  runZonedGuarded(initApp, (error, stackTrace) {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await loadEnv();
+    initApp();
+  }, (error, stackTrace) {
     log('Unexpected error', error: error, stackTrace: stackTrace);
     showGlobalSnackBar('Unexpected error, please try again later');
   });
 }
 
+Future<void> loadEnv() async {
+  if (kDebugMode) {
+    await dotenv.load();
+  } else {
+    await dotenv.load(fileName: '.env.production');
+  }
+}
+
 void initApp() {
   final tokenRepository = TokenRepository();
   final apiClient = ApiClient(
-    baseUrl: TOKI_API_URL,
+    baseUrl: dotenv.env['TOKI_API_URL']!,
     tokenRepository: tokenRepository,
   );
 
@@ -97,7 +107,7 @@ void initApp() {
 }
 
 void showGlobalSnackBar(String message) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
+  Future.microtask(() async {
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(

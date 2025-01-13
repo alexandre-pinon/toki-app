@@ -13,9 +13,9 @@ class TokiApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
-      title: 'Toki app',
+      title: 'Toki',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff5ED19E)),
         useMaterial3: true,
       ),
       home: const AppNavigator(),
@@ -34,9 +34,11 @@ class _AppNavigatorState extends State<AppNavigator> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().notifyAuth();
-    });
+    Future.microtask(_initializeAuth);
+  }
+
+  void _initializeAuth() async {
+    await context.read<AuthProvider>().notifyAuth();
   }
 
   @override

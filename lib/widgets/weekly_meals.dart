@@ -19,7 +19,13 @@ class WeeklyMeals extends StatefulWidget {
 }
 
 class _WeeklyMealsState extends State<WeeklyMeals> {
-  Future<void> fetchMealData() async {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_fetchMealData);
+  }
+
+  Future<void> _fetchMealData() async {
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
     final authProvider = context.read<AuthProvider>();
 
@@ -28,12 +34,6 @@ class _WeeklyMealsState extends State<WeeklyMeals> {
     } on Unauthenticated {
       await authProvider.logout();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => fetchMealData());
   }
 
   @override

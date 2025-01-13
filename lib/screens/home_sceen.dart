@@ -20,6 +20,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentPageIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_fetchMealData);
+    Future.microtask(_fetchLoggedInUser);
+  }
+
   Future<void> _fetchMealData() async {
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
     final authProvider = context.read<AuthProvider>();
@@ -40,13 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } on Unauthenticated {
       await authProvider.logout();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchMealData());
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchLoggedInUser());
   }
 
   @override
@@ -91,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
             case 1:
               showModalBottomSheet(
                 context: context,
+                isScrollControlled: true,
                 builder: (context) => ShoppingListItemForm(),
               );
           }

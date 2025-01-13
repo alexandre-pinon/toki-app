@@ -19,6 +19,12 @@ class RecipeList extends StatefulWidget {
 }
 
 class _RecipeListState extends State<RecipeList> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_fetchRecipes);
+  }
+
   Future<void> _fetchRecipes() async {
     final recipesProvider = context.read<RecipesProvider>();
     final authProvider = context.read<AuthProvider>();
@@ -28,12 +34,6 @@ class _RecipeListState extends State<RecipeList> {
     } on Unauthenticated {
       await authProvider.logout();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchRecipes());
   }
 
   @override

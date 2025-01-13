@@ -31,9 +31,7 @@ class _MealScreenState extends State<MealScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() async {
-      _initializeData();
-    });
+    Future.microtask(_initializeData);
   }
 
   void _initializeData() async {
@@ -236,7 +234,7 @@ class _RecipeHeaderState extends State<RecipeHeader> {
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          width: 100,
+          width: 85,
           child: ValueListenableBuilder(
             valueListenable: _mealTypeController,
             builder: (context, value, child) => DropdownButtonFormField(
@@ -250,8 +248,8 @@ class _RecipeHeaderState extends State<RecipeHeader> {
                   ),
                   isDense: true,
                 ),
+                iconSize: 0,
                 alignment: Alignment.center,
-                icon: SizedBox.shrink(),
                 value: value,
                 items: MealType.values
                     .map(
