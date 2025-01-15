@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/user_provider.dart';
-import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/screens/profile_screen.dart';
@@ -23,19 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(_fetchMealData);
     Future.microtask(_fetchLoggedInUser);
-  }
-
-  Future<void> _fetchMealData() async {
-    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      await weeklyMealsProvider.fetchMeals();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
   }
 
   Future<void> _fetchLoggedInUser() async {

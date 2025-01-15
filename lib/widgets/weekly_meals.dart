@@ -134,7 +134,8 @@ class DayMeals extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => MealScreen(meal)),
+                            builder: (context) => MealScreen(meal),
+                          ),
                         );
                       },
                     ),

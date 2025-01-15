@@ -69,7 +69,7 @@ class ApiClient {
     final response = await _tryAuthenticatedRequest(request);
 
     if (response.statusCode == 401) {
-      await _refreshToken();
+      await tokenRepository.refreshToken(_client, baseUrl);
       return await _tryAuthenticatedRequest(request);
     }
 
@@ -88,28 +88,5 @@ class ApiClient {
 
   Future<http.Response> _tryRequest(http.Request request) async {
     return await http.Response.fromStream(await _client.send(request));
-  }
-
-  Future<void> _refreshToken() async {
-    final refreshToken = await tokenRepository.getRefreshToken();
-    if (refreshToken == null) {
-      throw Unauthenticated();
-    }
-
-    final response = await _client.post(
-      Uri.parse('$baseUrl/auth/refresh'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'refresh_token': refreshToken}),
-    );
-
-    if (response.statusCode != 200) {
-      throw Unauthenticated();
-    }
-
-    final responseBody = jsonDecode(response.body);
-    await tokenRepository.saveTokens(
-      responseBody['access_token'],
-      responseBody['refresh_token'],
-    );
   }
 }
