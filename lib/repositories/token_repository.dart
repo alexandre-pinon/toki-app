@@ -46,10 +46,15 @@ class TokenRepository {
   }
 
   Future<void> _refreshToken(http.Client client, String baseUrl) async {
+    final token = await getRefreshToken();
+    if (token == null) {
+      throw Unauthenticated();
+    }
+
     final response = await client.post(
       Uri.parse('$baseUrl/auth/refresh'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'refresh_token': refreshToken}),
+      body: jsonEncode({'refresh_token': token}),
     );
 
     if (response.statusCode != 200) {
