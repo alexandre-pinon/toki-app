@@ -15,7 +15,6 @@ class AuthService {
     final response = await apiClient.post(
       '$basePath/login',
       body: {'email': email, 'password': password},
-      authenticated: false,
     );
 
     if (response.statusCode != 200) {
@@ -33,7 +32,6 @@ class AuthService {
     final response = await apiClient.post(
       '$basePath/register',
       body: {'name': fullName, 'email': email, 'password': password},
-      authenticated: false,
     );
 
     switch (response.statusCode) {

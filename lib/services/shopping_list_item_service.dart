@@ -1,10 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/models/ingredient.dart';
 import 'package:toki_app/models/shopping_list_item.dart';
-import 'package:toki_app/repositories/token_repository.dart';
 import 'package:toki_app/services/api_client.dart';
 
 class ShoppingListItemService {
