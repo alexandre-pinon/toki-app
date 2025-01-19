@@ -33,14 +33,13 @@ class PasswordInput extends StatelessWidget {
   String? validate(value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
+    } else if (value.length < 8) {
+      return 'Password must be at least 8 characters';
+    } else if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'Password must include a number';
+    } else if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+      return 'Password must include a special character';
     }
-
-    final passwordRegex = RegExp(
-        r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[A-Za-z])[A-Za-z\d!@#$%^&*]{8,}$');
-    if (!passwordRegex.hasMatch(value)) {
-      return 'Password must be at least 8 characters, include a number, and a special character';
-    }
-
     return null;
   }
 }

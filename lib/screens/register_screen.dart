@@ -15,16 +15,19 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              RegisterHeader(),
-              SizedBox(height: 48),
-              RegisterForm(),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                RegisterHeader(),
+                SizedBox(height: 48),
+                RegisterForm(),
+              ],
+            ),
           ),
         ),
       ),
