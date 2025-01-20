@@ -71,9 +71,6 @@ class _TokenAwareClient extends http.BaseClient {
     final accessToken = await _tokenRepository.getAccessToken();
     if (accessToken != null) {
       request.headers['Authorization'] = 'Bearer $accessToken';
-      print('sending request using access token $accessToken');
-    } else {
-      print('sending unauthenticated request');
     }
 
     return _inner.send(request);

@@ -4,14 +4,17 @@ import 'package:toki_app/services/auth_service.dart';
 class AuthProvider with ChangeNotifier {
   final AuthService authService;
 
-  AuthProvider({required this.authService});
-
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
+  AuthProvider({required this.authService}) {
+    _checkAuth();
+  }
+
   Future<void> login(String email, String password) async {
     await authService.login(email, password);
-    await notifyAuth();
+    _isAuthenticated = true;
+    notifyListeners();
   }
 
   Future<void> register(String fullName, String email, String password) async {
@@ -21,10 +24,11 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await authService.logout();
-    await notifyAuth();
+    _isAuthenticated = false;
+    notifyListeners();
   }
 
-  Future<void> notifyAuth() async {
+  Future<void> _checkAuth() async {
     _isAuthenticated = await authService.isAuthenticated();
     notifyListeners();
   }

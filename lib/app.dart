@@ -18,33 +18,20 @@ class TokiApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff5ED19E)),
         useMaterial3: true,
       ),
-      home: const AppNavigator(),
+      home: AppNavigator(),
     );
   }
 }
 
-class AppNavigator extends StatefulWidget {
+class AppNavigator extends StatelessWidget {
   const AppNavigator({super.key});
 
   @override
-  State<AppNavigator> createState() => _AppNavigatorState();
-}
-
-class _AppNavigatorState extends State<AppNavigator> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(_initializeAuth);
-  }
-
-  void _initializeAuth() async {
-    await context.read<AuthProvider>().notifyAuth();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
+    final isAuthenticated = context.select(
+      (AuthProvider p) => p.isAuthenticated,
+    );
 
-    return authProvider.isAuthenticated ? HomeScreen() : LoginScreen();
+    return isAuthenticated ? HomeScreen() : LoginScreen();
   }
 }

@@ -17,15 +17,20 @@ class AuthService {
       body: {'email': email, 'password': password},
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Can\'t log you in for the moment');
+    switch (response.statusCode) {
+      case 200:
+        final responseBody = jsonDecode(response.body);
+        await tokenRepository.saveTokens(
+          responseBody['access_token'],
+          responseBody['refresh_token'],
+        );
+      case 401:
+        throw InvalidCredentials();
+      default:
+        throw Exception(
+          'Can\'t log you in for the moment',
+        );
     }
-
-    final responseBody = jsonDecode(response.body);
-    await tokenRepository.saveTokens(
-      responseBody['access_token'],
-      responseBody['refresh_token'],
-    );
   }
 
   Future<void> register(String fullName, String email, String password) async {

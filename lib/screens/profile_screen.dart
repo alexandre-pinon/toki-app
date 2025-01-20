@@ -4,7 +4,6 @@ import 'package:toki_app/main.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/screens/change_user_name_screen.dart';
-import 'package:toki_app/screens/home_sceen.dart';
 import 'package:toki_app/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -72,11 +71,7 @@ class ProfileScreen extends StatelessWidget {
 
                           if (confirm) {
                             await authProvider.logout();
-                            navigator.pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                  builder: (context) => LoginScreen()),
-                              (route) => false,
-                            );
+                            navigator.pop();
                           }
                         },
                       )

@@ -7,7 +7,7 @@ class InvalidCredentials extends ExpectedError {
 class EmailAlreadyExist extends ExpectedError {
   EmailAlreadyExist()
       : super(
-          'An account with this email already exist, please choose another',
+          'An account with this email already exist, please choose another one',
         );
 }
 
