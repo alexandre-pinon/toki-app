@@ -53,9 +53,10 @@ class _MealScreenState extends State<MealScreen> {
     final mealProvider = context.watch<MealProvider>();
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(mealProvider.recipe?.title ?? widget.weeklyMeal.title),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
           actions: mealProvider.isInitialized
               ? [
                   IconButton(
@@ -88,34 +89,55 @@ class _MealScreenState extends State<MealScreen> {
               : []),
       body: Builder(
         builder: (context) {
-          if (!mealProvider.isInitialized || mealProvider.loading) {
-            return Center(child: CircularProgressIndicator());
-          }
-
           return ListView(
+            padding: EdgeInsets.only(top: 0, bottom: 16),
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(
-                  mealProvider.recipe?.imageUrl ??
-                      widget.weeklyMeal.imageUrl ??
-                      'https://placehold.co/400x200.png',
+              Stack(
+                children: [
+                  Hero(
+                    tag: widget.weeklyMeal.id,
+                    child: widget.weeklyMeal.imageUrl != null
+                        ? Image.network(widget.weeklyMeal.imageUrl!)
+                        : Image.asset(
+                            'assets/images/${widget.weeklyMeal.mealType}.png',
+                            width: 420,
+                            height: 230,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          const Color.fromARGB(255, 66, 66, 66),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    height: 230,
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              if (!mealProvider.isInitialized || mealProvider.loading)
+                Center(child: CircularProgressIndicator())
+              else ...[
+                RecipeHeader(
+                  meal: mealProvider.meal!,
+                  recipe: mealProvider.recipe!,
+                  recipeDetails: mealProvider.recipeDetails!,
                 ),
-              ),
-              SizedBox(height: 16),
-              RecipeHeader(
-                meal: mealProvider.meal!,
-                recipe: mealProvider.recipe!,
-                recipeDetails: mealProvider.recipeDetails!,
-              ),
-              SizedBox(height: 16),
-              RecipeIngredients(
-                ingredients: mealProvider.ingredients,
-                quantityRatio:
-                    mealProvider.meal!.servings / mealProvider.recipe!.servings,
-              ),
-              SizedBox(height: 16),
-              RecipeInstructions(mealProvider.instructions),
+                SizedBox(height: 16),
+                RecipeIngredients(
+                  ingredients: mealProvider.ingredients,
+                  quantityRatio: mealProvider.meal!.servings /
+                      mealProvider.recipe!.servings,
+                ),
+                SizedBox(height: 16),
+                RecipeInstructions(mealProvider.instructions),
+              ]
             ],
           );
         },
@@ -234,7 +256,7 @@ class _RecipeHeaderState extends State<RecipeHeader> {
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          width: 85,
+          width: 95,
           child: ValueListenableBuilder(
             valueListenable: _mealTypeController,
             builder: (context, value, child) => DropdownButtonFormField(
@@ -314,6 +336,7 @@ class RecipeIngredients extends StatelessWidget {
         ),
         SizedBox(height: 8),
         ListView.builder(
+          padding: EdgeInsets.only(top: 0),
           physics: NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemCount: ingredients.length,

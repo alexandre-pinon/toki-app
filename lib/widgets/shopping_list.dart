@@ -132,7 +132,7 @@ class ItemCard extends StatelessWidget {
       dismissThresholds: {DismissDirection.endToStart: 0.2},
       background: Container(
         padding: EdgeInsets.symmetric(horizontal: 12),
-        color: Colors.red,
+        color: Theme.of(context).colorScheme.error,
         alignment: AlignmentDirectional.centerEnd,
         child: Icon(Icons.delete),
       ),

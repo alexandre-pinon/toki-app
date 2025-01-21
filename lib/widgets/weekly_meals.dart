@@ -114,7 +114,7 @@ class DayMeals extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      color: Colors.red,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                     alignment: AlignmentDirectional.centerEnd,
                     child: Icon(Icons.delete),
@@ -122,9 +122,16 @@ class DayMeals extends StatelessWidget {
                   child: Card(
                     child: ListTile(
                       leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.network(
-                          meal.imageUrl ?? 'https://placehold.co/64.png',
+                        borderRadius: BorderRadius.circular(16),
+                        child: Hero(
+                          tag: meal.id,
+                          child: meal.imageUrl != null
+                              ? Image.network(meal.imageUrl!)
+                              : Image.asset(
+                                  'assets/images/${meal.mealType}.png',
+                                  width: 64,
+                                  height: 64,
+                                ),
                         ),
                       ),
                       title: Text(meal.title),

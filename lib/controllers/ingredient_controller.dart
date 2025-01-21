@@ -29,7 +29,7 @@ class IngredientController {
       );
 
   Ingredient get value => Ingredient(
-        nameController.text,
+        nameController.text.trim().toLowerCase(), // sanitize for aggregation
         double.tryParse(quantityController.text),
         unitController.value,
       );

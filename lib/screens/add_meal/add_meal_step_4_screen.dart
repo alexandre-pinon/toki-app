@@ -34,7 +34,6 @@ class AddMealStep4Screen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Add meal'),
       ),
       body: Center(

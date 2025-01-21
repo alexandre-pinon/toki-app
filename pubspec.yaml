@@ -67,6 +67,9 @@ flutter:
     - assets/google_logo.png
     - assets/icons/toki_app_icon_android.png
     - assets/icons/toki_app_icon_ios.png
+    - assets/images/breakfast.png
+    - assets/images/lunch.png
+    - assets/images/dinner.png
     - .env
     - .env.production
   #   - images/a_dot_ham.jpeg

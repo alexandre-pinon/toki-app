@@ -4,7 +4,6 @@ import 'package:toki_app/main.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/screens/change_user_name_screen.dart';
-import 'package:toki_app/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,7 +15,6 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Profile'),
       ),
       body: loggerInUser != null

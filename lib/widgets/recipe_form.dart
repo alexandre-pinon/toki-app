@@ -278,9 +278,9 @@ class IngredientInput extends StatelessWidget {
               ),
               SizedBox(width: 8),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete_outline,
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                 ),
                 onPressed: onDelete,
               ),
@@ -356,9 +356,9 @@ class InstructionInput extends StatelessWidget {
           ),
           SizedBox(width: 8),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.delete_outline,
-              color: Colors.red,
+              color: Theme.of(context).colorScheme.error,
             ),
             onPressed: onDelete,
           ),

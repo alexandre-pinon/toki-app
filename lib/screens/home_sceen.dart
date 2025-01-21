@@ -42,11 +42,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text([
-          'Weekly meals',
-          'Shopping list',
-        ][currentPageIndex]),
+        title: Text(
+          [
+            'Weekly meals',
+            'Shopping list',
+          ][currentPageIndex],
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () {

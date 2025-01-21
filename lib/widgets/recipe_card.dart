@@ -51,7 +51,7 @@ class RecipeCard extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.red,
+          color: Theme.of(context).colorScheme.error,
         ),
         alignment: AlignmentDirectional.centerEnd,
         child: Icon(Icons.delete),
@@ -61,9 +61,13 @@ class RecipeCard extends StatelessWidget {
         child: ListTile(
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              recipe.imageUrl ?? 'https://placehold.co/64.png',
-            ),
+            child: recipe.imageUrl != null
+                ? Image.network(recipe.imageUrl!)
+                : Image.asset(
+                    'assets/images/breakfast.png',
+                    width: 64,
+                    height: 64,
+                  ),
           ),
           title: Text(recipe.title),
           subtitle: SizedBox(

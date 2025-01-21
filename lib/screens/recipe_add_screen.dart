@@ -121,7 +121,6 @@ class _RecipeAddScreenState extends State<RecipeAddScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Add recipe'),
       ),
       body: ListView(

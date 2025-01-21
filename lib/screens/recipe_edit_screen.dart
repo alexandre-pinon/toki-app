@@ -53,7 +53,7 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
 
   Future<void> _saveData() async {
     final updatedRecipe = widget.recipeDetails.recipe.copyWith(
-      title: _titleController.text,
+      title: _titleController.text.trim(),
       prepTime: int.tryParse(_prepTimeController.text),
       cookTime: int.tryParse(_cookTimeController.text),
       servings: _servingsController.value,
@@ -92,7 +92,6 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(
           'Edit ${widget.recipeDetails.recipe.title.toLowerCase()} recipe',
         ),
