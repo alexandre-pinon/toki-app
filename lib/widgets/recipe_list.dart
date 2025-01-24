@@ -46,18 +46,19 @@ class _RecipeListState extends State<RecipeList> {
           return Center(child: CircularProgressIndicator());
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return ListView(
           children: [
             SizedBox(height: 16),
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 8),
+              margin: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Select a recipe:',
-                style: Theme.of(context).textTheme.titleMedium,
+                'Select a recipe',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
+            SizedBox(height: 8),
             ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: recipesProvider.recipes.length,
               itemBuilder: (context, index) => RecipeCard(
@@ -78,7 +79,8 @@ class _RecipeListState extends State<RecipeList> {
                 icon: Icon(Icons.add),
                 label: Text('Add recipe'),
               ),
-            )
+            ),
+            SizedBox(height: 8),
           ],
         );
       },

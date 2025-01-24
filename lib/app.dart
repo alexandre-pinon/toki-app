@@ -15,8 +15,7 @@ class TokiApp extends StatelessWidget {
       scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'Toki',
       theme: ThemeData(
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 198, 172, 159)),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFFC6AC9F)),
         useMaterial3: true,
       ),
       home: AppNavigator(),

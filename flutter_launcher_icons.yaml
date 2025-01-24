@@ -1,4 +1,4 @@
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/toki_app_icon_ios.png"
+  image_path: "assets/icons/toki_app_icon.png"
