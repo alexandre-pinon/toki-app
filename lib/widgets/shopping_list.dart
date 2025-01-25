@@ -166,6 +166,7 @@ class ItemCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Theme.of(context).dividerColor),
+                  color: item.weekday?.backgroundColor,
                 ),
                 child: Text(formattedWeekday),
               )

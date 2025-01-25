@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum Weekday implements Comparable<Weekday> {
   monday,
   tuesday,
@@ -83,5 +85,19 @@ extension StringExtension on Weekday {
       Weekday.saturday => 'Sat',
       Weekday.sunday => 'Sun',
     };
+  }
+}
+
+extension WeekdayColor on Weekday {
+  Color? get backgroundColor {
+    return {
+      Weekday.monday: Colors.blue[50],
+      Weekday.tuesday: Colors.green[50],
+      Weekday.wednesday: Colors.orange[50],
+      Weekday.thursday: Colors.purple[50],
+      Weekday.friday: Colors.pink[50],
+      Weekday.saturday: Colors.yellow[50],
+      Weekday.sunday: Colors.red[50],
+    }[this];
   }
 }
