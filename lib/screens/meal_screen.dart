@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/models/ingredient.dart';
 import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/planned_meal.dart';
@@ -9,13 +12,10 @@ import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/models/recipe_details.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/recipe_edit_screen.dart';
 import 'package:toki_app/screens/swap_meal_recipe_screen.dart';
 import 'package:toki_app/types/meal_type.dart';
-import 'package:toki_app/types/unit_type.dart';
-import 'package:toki_app/types/weekday.dart';
 import 'package:toki_app/widgets/servings_input.dart';
 
 class MealScreen extends StatefulWidget {

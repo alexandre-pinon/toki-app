@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_3_screen.dart';
-import 'package:toki_app/types/weekday.dart';
 
 class AddMealStep2Screen extends StatelessWidget {
   const AddMealStep2Screen({super.key});

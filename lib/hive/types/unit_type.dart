@@ -1,21 +1,44 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
+part 'unit_type.g.dart';
+
+@HiveType(typeId: 1)
 enum UnitType {
+  @HiveField(0)
   ml,
+  @HiveField(1)
   cl,
+  @HiveField(2)
   dl,
+  @HiveField(3)
   l,
+  @HiveField(4)
   g,
+  @HiveField(5)
   kg,
+  @HiveField(6)
   tsp,
+  @HiveField(7)
   tbsp,
+  @HiveField(8)
   cup,
+  @HiveField(9)
   piece,
+  @HiveField(10)
   pinch,
+  @HiveField(11)
   bunch,
+  @HiveField(12)
   clove,
+  @HiveField(13)
   can,
+  @HiveField(14)
   package,
+  @HiveField(15)
   slice,
+  @HiveField(16)
   totaste,
+  @HiveField(17)
   unit;
 
   @override

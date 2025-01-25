@@ -5,7 +5,9 @@ import 'package:toki_app/services/user_service.dart';
 class UserProvider with ChangeNotifier {
   final UserService userService;
 
-  UserProvider({required this.userService});
+  UserProvider({required this.userService}) {
+    getProfile();
+  }
 
   User? _user;
   User? get user => _user;

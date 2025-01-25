@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
 import 'package:toki_app/models/ingredient.dart';
-import 'package:toki_app/types/unit_type.dart';
 
 class IngredientController {
   final TextEditingController nameController;

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:toki_app/hive/types/shopping_list_item.dart';
 import 'package:toki_app/models/ingredient.dart';
-import 'package:toki_app/models/shopping_list_item.dart';
 import 'package:toki_app/services/api_client.dart';
 
 class ShoppingListItemService {

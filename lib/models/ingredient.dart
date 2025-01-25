@@ -1,4 +1,4 @@
-import 'package:toki_app/types/unit_type.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
 
 class Ingredient {
   final String name;

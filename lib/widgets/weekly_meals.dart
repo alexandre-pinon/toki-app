@@ -1,67 +1,54 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/main.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
+import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/screens/meal_screen.dart';
 import 'package:toki_app/services/planned_meal_service.dart';
-import 'package:toki_app/types/weekday.dart';
-import 'package:provider/provider.dart';
-import 'package:collection/collection.dart';
 
-class WeeklyMeals extends StatefulWidget {
+class WeeklyMeals extends StatelessWidget {
   const WeeklyMeals({super.key});
 
   @override
-  State<WeeklyMeals> createState() => _WeeklyMealsState();
-}
-
-class _WeeklyMealsState extends State<WeeklyMeals> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(_fetchMealData);
-  }
-
-  Future<void> _fetchMealData() async {
-    final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      await weeklyMealsProvider.fetchMeals();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final weeklyMealsProvider = context.watch<WeeklyMealsProvider>();
+    final loggerInUser = context.watch<UserProvider>().user;
+    final weeklyMealsProvider = context.watch<WeeklyMealsProvider>();
 
-        if (weeklyMealsProvider.loading) {
-          return Center(child: CircularProgressIndicator());
-        }
+    if (weeklyMealsProvider.loading) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-        final mealsByDay = groupBy(
-          weeklyMealsProvider.meals,
-          (meal) => meal.mealDate,
-        );
-        return ListView(
-          children: mealsByDay.entries
-              .sortedBy((entry) => entry.key) // by meal date
-              .map((entry) => DayMeals(
-                    day: Weekday.fromDatetimeWeekday(
-                      entry.key.weekday,
-                    ),
-                    meals: entry.value,
-                  ))
-              .toList(),
-        );
-      },
+    if (weeklyMealsProvider.meals.isEmpty) {
+      return Center(
+        child: Text(
+          loggerInUser != null
+              ? 'No meals planned for this week'
+              : 'Connect to internet to see your planned meals',
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+      );
+    }
+
+    final mealsByDay = groupBy(
+      weeklyMealsProvider.meals,
+      (meal) => meal.mealDate,
+    );
+    return ListView(
+      children: mealsByDay.entries
+          .sortedBy((entry) => entry.key) // by meal date
+          .map((entry) => DayMeals(
+                day: Weekday.fromDatetimeWeekday(
+                  entry.key.weekday,
+                ),
+                meals: entry.value,
+              ))
+          .toList(),
     );
   }
 }

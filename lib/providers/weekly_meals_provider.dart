@@ -5,7 +5,9 @@ import 'package:toki_app/services/planned_meal_service.dart';
 class WeeklyMealsProvider extends LoadingChangeNotifier {
   final PlannedMealService mealService;
 
-  WeeklyMealsProvider({required this.mealService});
+  WeeklyMealsProvider({required this.mealService}) {
+    fetchMeals();
+  }
 
   List<WeeklyPlannedMeal> _meals = [];
   List<WeeklyPlannedMeal> get meals => _meals;

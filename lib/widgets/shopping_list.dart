@@ -1,59 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/hive/types/shopping_list_item.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/main.dart';
-import 'package:toki_app/models/shopping_list_item.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/shopping_list_provider.dart';
 import 'package:toki_app/types/string.dart';
-import 'package:toki_app/types/unit_type.dart';
-import 'package:toki_app/types/weekday.dart';
 import 'package:toki_app/widgets/shopping_list_item_form.dart';
 
-class ShoppingList extends StatefulWidget {
+class ShoppingList extends StatelessWidget {
   const ShoppingList({super.key});
 
   @override
-  State<ShoppingList> createState() => _ShoppingListState();
-}
-
-class _ShoppingListState extends State<ShoppingList> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(_fetchItems);
-  }
-
-  Future<void> _fetchItems() async {
-    final shoppingListProvider = context.read<ShoppingListProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      await shoppingListProvider.fetchInitialItems();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final shoppingListProvider = context.watch<ShoppingListProvider>();
+    final shoppingListProvider = context.watch<ShoppingListProvider>();
 
-        if (shoppingListProvider.loading) {
-          return Center(child: CircularProgressIndicator());
-        }
+    if (shoppingListProvider.items.isEmpty) {
+      return Center(
+        child: Text(
+          'No items in your shopping list',
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+      );
+    }
 
-        return ListView.separated(
-          itemCount: shoppingListProvider.items.length,
-          itemBuilder: (context, index) => ItemCard(
-            item: shoppingListProvider.items[index],
-            index: index,
-          ),
-          separatorBuilder: (context, index) => Divider(height: 0),
-        );
-      },
+    return ListView.separated(
+      itemCount: shoppingListProvider.items.length,
+      itemBuilder: (context, index) => ItemCard(
+        item: shoppingListProvider.items[index],
+        index: index,
+      ),
+      separatorBuilder: (context, index) => Divider(height: 0),
     );
   }
 }
@@ -63,17 +42,6 @@ class ItemCard extends StatelessWidget {
   final int index;
 
   const ItemCard({super.key, required this.item, required this.index});
-
-  Future<void> _toggleItemCheck(BuildContext context) async {
-    final shoppingListProvider = context.read<ShoppingListProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      shoppingListProvider.toggleCheckItem(index);
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
-  }
 
   Future<void> _removeShoppingListItem(BuildContext context) async {
     final shoppingListProvider = context.read<ShoppingListProvider>();
@@ -144,19 +112,19 @@ class ItemCard extends StatelessWidget {
           ),
           value: item.checked,
           onChanged: (_) {
-            _toggleItemCheck(context);
+            context.read<ShoppingListProvider>().toggleCheckItem(index);
           },
         ),
         title: Text(item.name.capitalize()),
         subtitle: subtitle.isEmpty ? null : Text(subtitle),
         onTap: () {
-          item.canBeEdited
-              ? showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => ShoppingListItemForm(item: item),
-                )
-              : _toggleItemCheck(context);
+          if (item.canBeEdited) {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => ShoppingListItemForm(item: item),
+            );
+          }
         },
         trailing: formattedWeekday.isNotEmpty
             ? Container(

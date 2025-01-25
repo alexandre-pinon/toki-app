@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:toki_app/errors/auth_error.dart';
-import 'package:toki_app/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/screens/add_meal/add_meal_step_1_screen.dart';
-import 'package:provider/provider.dart';
 import 'package:toki_app/screens/profile_screen.dart';
 import 'package:toki_app/widgets/shopping_list.dart';
 import 'package:toki_app/widgets/shopping_list_item_form.dart';
@@ -18,23 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currentPageIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(_fetchLoggedInUser);
-  }
-
-  Future<void> _fetchLoggedInUser() async {
-    final userProvider = context.read<UserProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      await userProvider.getProfile();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,19 +34,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(),
-                ),
-              );
-            },
-            child: CircleAvatar(
-              child: Text(loggerInUser != null ? loggerInUser.initials : ''),
-            ),
-          )
+          if (loggerInUser != null)
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileScreen(),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                child: Text(loggerInUser.initials),
+              ),
+            )
         ],
       ),
       body: [
@@ -73,21 +55,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ShoppingList(),
       ][currentPageIndex],
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          switch (currentPageIndex) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddMealStep1Screen()),
-              );
-            case 1:
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => ShoppingListItemForm(),
-              );
-          }
-        },
+        backgroundColor: loggerInUser == null ? Colors.grey[300] : null,
+        onPressed: loggerInUser != null
+            ? () {
+                switch (currentPageIndex) {
+                  case 0:
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => AddMealStep1Screen()),
+                    );
+                  case 1:
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) => ShoppingListItemForm(),
+                    );
+                }
+              }
+            : null,
         shape: CircleBorder(),
         child: Icon(Icons.add),
       ),

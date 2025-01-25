@@ -5,7 +5,9 @@ import 'package:toki_app/services/recipe_service.dart';
 class RecipesProvider extends LoadingChangeNotifier {
   final RecipeService recipeService;
 
-  RecipesProvider({required this.recipeService});
+  RecipesProvider({required this.recipeService}) {
+    fetchRecipes();
+  }
 
   List<Recipe> _recipes = [];
   List<Recipe> get recipes => _recipes;

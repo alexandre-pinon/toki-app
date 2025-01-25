@@ -4,8 +4,13 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/app.dart';
+import 'package:toki_app/hive/types/pending_task.dart';
+import 'package:toki_app/hive/types/shopping_list_item.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
@@ -35,10 +40,22 @@ void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await loadEnv();
+    await initHive();
     initApp();
   }, (error, stackTrace) {
     log('Unexpected error', error: error, stackTrace: stackTrace);
-    showGlobalSnackBar('Unexpected error, please try again later');
+
+    final isNetworkError = error.toString().contains('SocketException') ||
+        error.toString().contains('Connection refused');
+
+    if (isNetworkError) {
+      showGlobalSnackBar(
+        'Unable to connect to server, please check your connection',
+        isError: false,
+      );
+    } else {
+      showGlobalSnackBar('Unexpected error, please try again later');
+    }
   });
 }
 
@@ -48,6 +65,15 @@ Future<void> loadEnv() async {
   } else {
     await dotenv.load(fileName: '.env.production');
   }
+}
+
+Future<void> initHive() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(UnitTypeAdapter());
+  Hive.registerAdapter(WeekdayAdapter());
+  Hive.registerAdapter(TaskTypeAdapter());
+  Hive.registerAdapter(ShoppingListItemAdapter());
+  Hive.registerAdapter(PendingTaskAdapter());
 }
 
 void initApp() {
@@ -106,16 +132,29 @@ void initApp() {
   runApp(app);
 }
 
-void showGlobalSnackBar(String message) {
+String? _lastMessage;
+Timer? _debounceTimer;
+
+void showGlobalSnackBar(String message, {bool isError = true}) {
+  if (message == _lastMessage && _debounceTimer?.isActive == true) {
+    return;
+  }
+
+  _lastMessage = message;
+  _debounceTimer?.cancel();
+  _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+    _lastMessage = null;
+  });
+
   Future.microtask(() async {
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.red.shade900),
+          style: isError ? TextStyle(color: Colors.red.shade900) : null,
         ),
-        backgroundColor: Colors.red.shade100,
-        duration: const Duration(seconds: 5),
+        backgroundColor: isError ? Colors.red.shade100 : null,
+        duration: const Duration(seconds: 3),
       ),
     );
   });

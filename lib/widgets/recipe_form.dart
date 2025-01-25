@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
-import 'package:toki_app/types/unit_type.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
 import 'package:toki_app/widgets/servings_input.dart';
 
 class RecipeForm extends StatefulWidget {

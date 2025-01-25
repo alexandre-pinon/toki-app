@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/hive/types/shopping_list_item.dart';
+import 'package:toki_app/hive/types/unit_type.dart';
 import 'package:toki_app/models/ingredient.dart';
-import 'package:toki_app/models/shopping_list_item.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/shopping_list_provider.dart';
-import 'package:toki_app/types/unit_type.dart';
 
 class ShoppingListItemForm extends StatefulWidget {
   final ShoppingListItem? item;

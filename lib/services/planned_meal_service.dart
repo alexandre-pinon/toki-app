@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:toki_app/errors/meal_already_exist_error.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/services/api_client.dart';
-import 'package:toki_app/types/weekday.dart';
 
 class PlannedMealService {
   static const basePath = '/planned-meals';

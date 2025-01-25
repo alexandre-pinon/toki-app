@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/models/planned_meal.dart';
 import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
-import 'package:toki_app/types/weekday.dart';
 import 'package:toki_app/widgets/recipe_list.dart';
 
 class SwapMealRecipeScreen extends StatelessWidget {
