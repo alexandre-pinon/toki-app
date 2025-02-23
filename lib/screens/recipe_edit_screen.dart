@@ -4,10 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
-import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/controllers/recipe_controller.dart';
 import 'package:toki_app/models/instruction.dart';
 import 'package:toki_app/models/recipe_details.dart';
-import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/widgets/recipe_form.dart';
@@ -22,25 +21,15 @@ class RecipeEditScreen extends StatefulWidget {
 }
 
 class _RecipeEditScreenState extends State<RecipeEditScreen> {
-  late final TextEditingController _titleController;
-  late final TextEditingController _prepTimeController;
-  late final TextEditingController _cookTimeController;
-  late final ValueNotifier<int> _servingsController;
+  late final RecipeController _recipeController;
   late final List<IngredientController> _ingredientControllers;
   late final List<TextEditingController> _instructionControllers;
 
   @override
   void initState() {
     super.initState();
-    final recipe = widget.recipeDetails.recipe;
-    _titleController = TextEditingController(text: recipe.title);
-    _prepTimeController = TextEditingController(
-      text: recipe.prepTime?.toString() ?? '',
-    );
-    _cookTimeController = TextEditingController(
-      text: recipe.cookTime?.toString() ?? '',
-    );
-    _servingsController = ValueNotifier(recipe.servings);
+    _recipeController =
+        RecipeController.fromRecipe(widget.recipeDetails.recipe);
     _ingredientControllers = widget.recipeDetails.ingredients
         .map(IngredientController.fromIngredient)
         .toList();
@@ -53,10 +42,12 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
 
   Future<void> _saveData() async {
     final updatedRecipe = widget.recipeDetails.recipe.copyWith(
-      title: _titleController.text.trim(),
-      prepTime: int.tryParse(_prepTimeController.text),
-      cookTime: int.tryParse(_cookTimeController.text),
-      servings: _servingsController.value,
+      title: _recipeController.value.title,
+      prepTime: _recipeController.value.prepTime,
+      cookTime: _recipeController.value.cookTime,
+      servings: _recipeController.value.servings,
+      sourceUrl: _recipeController.value.sourceUrl,
+      imageUrl: _recipeController.value.imageUrl,
     );
     final updatedIngredients = _ingredientControllers
         .map(
@@ -76,16 +67,11 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
 
     final mealProvider = context.read<MealProvider>();
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
-    try {
-      await mealProvider.updateRecipe(updatedRecipeDetails);
-      await weeklyMealsProvider.fetchMeals();
-      navigator.pop();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
+    await mealProvider.updateRecipe(updatedRecipeDetails);
+    await weeklyMealsProvider.fetchMeals();
+    navigator.pop();
   }
 
   @override
@@ -105,10 +91,7 @@ class _RecipeEditScreenState extends State<RecipeEditScreen> {
       body: ListView(
         children: [
           RecipeForm(
-            titleController: _titleController,
-            prepTimeController: _prepTimeController,
-            cookTimeController: _cookTimeController,
-            servingsController: _servingsController,
+            recipeController: _recipeController,
             ingredientControllers: _ingredientControllers,
             instructionControllers: _instructionControllers,
           )

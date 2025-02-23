@@ -5,9 +5,6 @@ class ShoppingListBox {
   static const String boxName = 'shopping_list';
 
   static Future<Box<ShoppingListItem>> openBox() async {
-    if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(ShoppingListItemAdapter());
-    }
     return await Hive.openBox<ShoppingListItem>(boxName);
   }
 }

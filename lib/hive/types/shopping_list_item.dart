@@ -78,16 +78,25 @@ class ShoppingListItem extends HiveObject
   }
 
   static int compareByCheckedAndDate(ShoppingListItem a, ShoppingListItem b) {
-    // First sort by checked status
+    // 1. Compare checked status (unchecked items come first)
     if (a.checked != b.checked) {
       return a.checked ? 1 : -1;
     }
-    // Then sort by meal date, nulls first
-    if (a.mealDate == null && b.mealDate != null) return -1;
-    if (a.mealDate != null && b.mealDate == null) return 1;
-    if (a.mealDate != null && b.mealDate != null) {
-      return a.mealDate!.compareTo(b.mealDate!);
+
+    // 2. Compare meal dates (null dates come first)
+    final bool aHasDate = a.mealDate != null;
+    final bool bHasDate = b.mealDate != null;
+
+    if (!aHasDate && bHasDate) return -1;
+    if (aHasDate && !bHasDate) return 1;
+
+    // If both have dates, compare them
+    if (aHasDate && bHasDate) {
+      final dateComparison = a.mealDate!.compareTo(b.mealDate!);
+      if (dateComparison != 0) return dateComparison;
     }
-    return 0;
+
+    // 3. If everything else is equal, sort alphabetically by name
+    return a.name.compareTo(b.name);
   }
 }

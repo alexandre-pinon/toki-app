@@ -4,12 +4,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
-import 'package:toki_app/errors/auth_error.dart';
+import 'package:toki_app/controllers/recipe_controller.dart';
 import 'package:toki_app/models/imported_recipe.dart';
 import 'package:toki_app/models/instruction.dart';
-import 'package:toki_app/models/recipe.dart';
 import 'package:toki_app/models/recipe_details.dart';
-import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_creation_provider.dart';
 import 'package:toki_app/providers/recipes_provider.dart';
 import 'package:toki_app/services/recipe_service.dart';
@@ -23,21 +21,13 @@ class RecipeAddScreen extends StatefulWidget {
 }
 
 class _RecipeAddScreenState extends State<RecipeAddScreen> {
-  final _titleController = TextEditingController();
-  final _prepTimeController = TextEditingController();
-  final _cookTimeController = TextEditingController();
-  final _servingsController = ValueNotifier(1);
+  final _recipeController = RecipeController.empty();
   final _ingredientControllers = <IngredientController>[];
   final _instructionControllers = <TextEditingController>[];
   final _urlController = TextEditingController();
 
   Future<void> _createRecipe(BuildContext context) async {
-    final recipe = RecipeCreateInput(
-      title: _titleController.text,
-      prepTime: int.tryParse(_prepTimeController.text),
-      cookTime: int.tryParse(_cookTimeController.text),
-      servings: _servingsController.value,
-    );
+    final recipe = _recipeController.value;
     final ingredients = _ingredientControllers
         .map(
           (controller) => controller.value,
@@ -56,48 +46,43 @@ class _RecipeAddScreenState extends State<RecipeAddScreen> {
 
     final mealCreationProvider = context.read<MealCreationProvider>();
     final recipesProvider = context.read<RecipesProvider>();
-    final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
-    try {
-      await mealCreationProvider.createAndSetRecipe(recipeDetails);
-      await recipesProvider.fetchRecipes();
-      navigator.pop();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
+    await mealCreationProvider.createAndSetRecipe(recipeDetails);
+    await recipesProvider.fetchRecipes();
+    navigator.pop();
   }
 
   Future<void> _importRecipe(BuildContext context) async {
     final recipeService = context.read<RecipeService>();
-    final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
-    try {
-      final recipeDetails = await recipeService.importRecipe(
-        _urlController.text.trim(),
-      );
-      _setRecipe(recipeDetails);
-    } on Unauthenticated {
-      await authProvider.logout();
-    } finally {
-      navigator.pop();
-    }
+    final recipeDetails = await recipeService.importRecipe(
+      _urlController.text.trim(),
+    );
+    _setRecipe(recipeDetails);
+    navigator.pop();
   }
 
   void _setRecipe(ImportedRecipe recipe) {
     setState(() {
       if (recipe.title != null) {
-        _titleController.text = recipe.title!;
+        _recipeController.titleController.text = recipe.title!;
       }
       if (recipe.servings != null) {
-        _servingsController.value = recipe.servings!;
+        _recipeController.servingsController.value = recipe.servings!;
       }
       if (recipe.prepTime != null) {
-        _prepTimeController.text = recipe.prepTime!.toString();
+        _recipeController.prepTimeController.text = recipe.prepTime!.toString();
       }
       if (recipe.cookTime != null) {
-        _cookTimeController.text = recipe.cookTime!.toString();
+        _recipeController.cookTimeController.text = recipe.cookTime!.toString();
+      }
+      if (recipe.sourceUrl != null) {
+        _recipeController.sourceUrlController.text = recipe.sourceUrl!;
+      }
+      if (recipe.imageUrl != null) {
+        _recipeController.imageUrlController.text = recipe.imageUrl!;
       }
       if (recipe.ingredients.isNotEmpty) {
         _ingredientControllers.clear();
@@ -126,10 +111,7 @@ class _RecipeAddScreenState extends State<RecipeAddScreen> {
       body: ListView(
         children: [
           RecipeForm(
-            titleController: _titleController,
-            prepTimeController: _prepTimeController,
-            cookTimeController: _cookTimeController,
-            servingsController: _servingsController,
+            recipeController: _recipeController,
             ingredientControllers: _ingredientControllers,
             instructionControllers: _instructionControllers,
           ),
@@ -165,7 +147,7 @@ class _RecipeAddScreenState extends State<RecipeAddScreen> {
                     TextField(
                       controller: _urlController,
                       decoration: InputDecoration(
-                        hintText: 'https://super-delicious-recipe.com',
+                        hintText: 'Import recipe from marmiton',
                         border: OutlineInputBorder(),
                       ),
                     ),

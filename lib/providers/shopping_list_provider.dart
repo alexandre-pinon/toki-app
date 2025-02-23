@@ -17,6 +17,8 @@ class ShoppingListProvider with ChangeNotifier {
     _init();
   }
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   List<ShoppingListItem> _items = [];
   List<ShoppingListItem> get items => _items;
 
@@ -25,15 +27,20 @@ class ShoppingListProvider with ChangeNotifier {
     _pendingTasksBox = await PendingTaskBox.openBox();
 
     _items = _itemsBox.values.toList()..sort();
+    _isInitialized = true;
     notifyListeners();
 
     await resyncItems();
   }
 
   Future<void> resyncItems() async {
+    if (!_isInitialized) {
+      return;
+    }
+
     await _retryPendingTasks();
     final items = await shoppingListItemService.fetchItems();
-    _saveToLocalCache(items);
+    _saveToLocalCache(items..sort());
   }
 
   Future<void> _retryPendingTasks() async {

@@ -52,6 +52,8 @@ class Recipe with RecipeJsonSerializable {
     int? prepTime,
     int? cookTime,
     required int servings,
+    String? sourceUrl,
+    String? imageUrl,
   }) {
     return Recipe(
       id,

@@ -36,16 +36,10 @@ class _MealScreenState extends State<MealScreen> {
 
   void _initializeData() async {
     final mealProvider = context.read<MealProvider>();
-    final authProvider = context.read<AuthProvider>();
-
-    try {
-      await mealProvider.initData(
-        widget.weeklyMeal.id,
-        widget.weeklyMeal.recipeId,
-      );
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
+    await mealProvider.initData(
+      widget.weeklyMeal.id,
+      widget.weeklyMeal.recipeId,
+    );
   }
 
   @override
@@ -256,7 +250,7 @@ class _RecipeHeaderState extends State<RecipeHeader> {
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          width: 95,
+          width: 100,
           child: ValueListenableBuilder(
             valueListenable: _mealTypeController,
             builder: (context, value, child) => DropdownButtonFormField(

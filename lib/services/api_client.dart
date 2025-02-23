@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:toki_app/repositories/token_repository.dart';
@@ -14,7 +15,7 @@ class ApiClient {
       retries: 1,
       when: (response) => response.statusCode == 401,
       onRetry: (request, response, retryCount) async {
-        await tokenRepository.refreshToken(_client, baseUrl);
+        await tokenRepository.refreshToken(http.Client(), baseUrl);
       },
     );
   }

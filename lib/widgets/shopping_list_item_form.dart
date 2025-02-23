@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/hive/types/shopping_list_item.dart';
 import 'package:toki_app/hive/types/unit_type.dart';
 import 'package:toki_app/models/ingredient.dart';
-import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/shopping_list_provider.dart';
 
 class ShoppingListItemForm extends StatefulWidget {
@@ -22,21 +20,15 @@ class _ShoppingListItemFormState extends State<ShoppingListItemForm> {
 
   Future<void> _upsertShoppingListItem(BuildContext context) async {
     final shoppingListProvider = context.read<ShoppingListProvider>();
-    final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
-    try {
-      widget.item != null
-          ? await shoppingListProvider.editItemIngredient(
-              widget.item!.ids[0],
-              _ingredientController.value,
-            )
-          : await shoppingListProvider.addNewItem(_ingredientController.value);
-    } on Unauthenticated {
-      await authProvider.logout();
-    } finally {
-      navigator.pop();
-    }
+    widget.item != null
+        ? await shoppingListProvider.editItemIngredient(
+            widget.item!.ids[0],
+            _ingredientController.value,
+          )
+        : await shoppingListProvider.addNewItem(_ingredientController.value);
+    navigator.pop();
   }
 
   @override

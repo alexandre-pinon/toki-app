@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/main.dart';
 import 'package:toki_app/models/recipe.dart';
-import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/recipes_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/services/recipe_service.dart';
@@ -21,17 +19,12 @@ class RecipeCard extends StatelessWidget {
     final recipeService = context.read<RecipeService>();
     final recipesProvider = context.read<RecipesProvider>();
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
 
-    try {
-      await recipeService.deleteRecipe(recipeId);
-      await Future.wait([
-        recipesProvider.fetchRecipes(),
-        weeklyMealsProvider.fetchMeals(),
-      ]);
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
+    await recipeService.deleteRecipe(recipeId);
+    await Future.wait([
+      recipesProvider.fetchRecipes(),
+      weeklyMealsProvider.fetchMeals(),
+    ]);
   }
 
   @override

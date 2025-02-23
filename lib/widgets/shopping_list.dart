@@ -10,8 +10,26 @@ import 'package:toki_app/providers/shopping_list_provider.dart';
 import 'package:toki_app/types/string.dart';
 import 'package:toki_app/widgets/shopping_list_item_form.dart';
 
-class ShoppingList extends StatelessWidget {
+class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
+
+  @override
+  State<ShoppingList> createState() => _ShoppingListState();
+}
+
+class _ShoppingListState extends State<ShoppingList> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_resyncItems);
+  }
+
+  Future<void> _resyncItems() async {
+    final shoppingListProvider = context.read<ShoppingListProvider>();
+    if (shoppingListProvider.isInitialized) {
+      await shoppingListProvider.resyncItems();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

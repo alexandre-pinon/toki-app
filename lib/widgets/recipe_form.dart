@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:toki_app/controllers/ingredient_controller.dart';
+import 'package:toki_app/controllers/recipe_controller.dart';
 import 'package:toki_app/hive/types/unit_type.dart';
 import 'package:toki_app/widgets/servings_input.dart';
 
 class RecipeForm extends StatefulWidget {
-  final TextEditingController titleController;
-  final TextEditingController prepTimeController;
-  final TextEditingController cookTimeController;
-  final ValueNotifier<int> servingsController;
+  final RecipeController recipeController;
   final List<IngredientController> ingredientControllers;
   final List<TextEditingController> instructionControllers;
 
   const RecipeForm({
     super.key,
-    required this.titleController,
-    required this.prepTimeController,
-    required this.cookTimeController,
-    required this.servingsController,
+    required this.recipeController,
     required this.ingredientControllers,
     required this.instructionControllers,
   });
@@ -52,10 +47,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
   @override
   void dispose() {
-    widget.titleController.dispose();
-    widget.prepTimeController.dispose();
-    widget.cookTimeController.dispose();
-    widget.servingsController.dispose();
+    widget.recipeController.dispose();
 
     for (final controller in widget.ingredientControllers) {
       controller.dispose();
@@ -82,10 +74,10 @@ class _RecipeFormState extends State<RecipeForm> {
           ),
           SizedBox(height: 16),
           RecipeInput(
-            titleController: widget.titleController,
-            prepTimeController: widget.prepTimeController,
-            cookTimeController: widget.cookTimeController,
-            servingsController: widget.servingsController,
+            titleController: widget.recipeController.titleController,
+            prepTimeController: widget.recipeController.prepTimeController,
+            cookTimeController: widget.recipeController.cookTimeController,
+            servingsController: widget.recipeController.servingsController,
           ),
           SizedBox(height: 32),
           Container(

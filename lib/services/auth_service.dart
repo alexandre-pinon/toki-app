@@ -1,20 +1,23 @@
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/repositories/token_repository.dart';
-import 'package:toki_app/services/api_client.dart';
 
 class AuthService {
+  final String baseUrl;
   static const basePath = '/auth';
   final TokenRepository tokenRepository;
-  final ApiClient apiClient;
+  // no need refresh mechanism here, no need to use ApiClient
+  final http.Client httpClient = http.Client();
 
-  AuthService({required this.tokenRepository, required this.apiClient});
+  AuthService({required this.baseUrl, required this.tokenRepository});
 
   Future<void> login(String email, String password) async {
-    final response = await apiClient.post(
-      '$basePath/login',
-      body: {'email': email, 'password': password},
+    final response = await httpClient.post(
+      Uri.parse('$baseUrl$basePath/login'),
+      headers: {'Content-type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     switch (response.statusCode) {
@@ -34,9 +37,11 @@ class AuthService {
   }
 
   Future<void> register(String fullName, String email, String password) async {
-    final response = await apiClient.post(
-      '$basePath/register',
-      body: {'name': fullName, 'email': email, 'password': password},
+    final response = await httpClient.post(
+      Uri.parse('$baseUrl$basePath/register'),
+      headers: {'Content-type': 'application/json'},
+      body:
+          jsonEncode({'name': fullName, 'email': email, 'password': password}),
     );
 
     switch (response.statusCode) {
@@ -53,7 +58,7 @@ class AuthService {
 
   Future<void> logout() async {
     try {
-      await apiClient.post('$basePath/logout');
+      await httpClient.post(Uri.parse('$baseUrl$basePath/logout'));
     } on Unauthenticated {
       // already logged out, pass
     } finally {

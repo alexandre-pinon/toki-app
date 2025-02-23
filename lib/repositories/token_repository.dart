@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:toki_app/errors/auth_error.dart';
 
 class TokenRepository {
@@ -32,7 +32,7 @@ class TokenRepository {
   Future<void> refreshToken(http.Client client, String baseUrl) async {
     // If there is an ongoing request, await it
     if (_refreshRequest != null) {
-      return await _refreshRequest;
+      await _refreshRequest;
     }
 
     // Else start the refresh token process

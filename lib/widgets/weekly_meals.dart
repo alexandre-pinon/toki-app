@@ -1,11 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/main.dart';
 import 'package:toki_app/models/planned_meal.dart';
-import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/user_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
@@ -62,14 +60,9 @@ class DayMeals extends StatelessWidget {
   Future<void> _deleteMeal(BuildContext context, String mealId) async {
     final mealService = context.read<PlannedMealService>();
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
 
-    try {
-      await mealService.deletePlannedMeal(mealId);
-      await weeklyMealsProvider.fetchMeals();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
+    await mealService.deletePlannedMeal(mealId);
+    await weeklyMealsProvider.fetchMeals();
   }
 
   @override

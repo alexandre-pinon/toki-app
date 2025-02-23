@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/hive/types/weekday.dart';
 import 'package:toki_app/models/planned_meal.dart';
-import 'package:toki_app/providers/auth_provider.dart';
 import 'package:toki_app/providers/meal_provider.dart';
 import 'package:toki_app/providers/weekly_meals_provider.dart';
 import 'package:toki_app/widgets/recipe_list.dart';
@@ -21,19 +19,14 @@ class SwapMealRecipeScreen extends StatelessWidget {
 
     final mealProvider = context.read<MealProvider>();
     final weeklyMealsProvider = context.read<WeeklyMealsProvider>();
-    final authProvider = context.read<AuthProvider>();
     final navigator = Navigator.of(context);
 
-    try {
-      await mealProvider.updateMeal(updatedMeal);
-      await Future.wait([
-        mealProvider.fetchRecipeDetails(recipeId),
-        weeklyMealsProvider.fetchMeals(),
-      ]);
-      navigator.pop();
-    } on Unauthenticated {
-      await authProvider.logout();
-    }
+    await mealProvider.updateMeal(updatedMeal);
+    await Future.wait([
+      mealProvider.fetchRecipeDetails(recipeId),
+      weeklyMealsProvider.fetchMeals(),
+    ]);
+    navigator.pop();
   }
 
   @override

@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:toki_app/app.dart';
+import 'package:toki_app/errors/auth_error.dart';
 import 'package:toki_app/hive/types/pending_task.dart';
 import 'package:toki_app/hive/types/shopping_list_item.dart';
 import 'package:toki_app/hive/types/unit_type.dart';
@@ -43,6 +44,15 @@ void main() {
     await initHive();
     initApp();
   }, (error, stackTrace) {
+    if (error is Unauthenticated) {
+      final context = scaffoldMessengerKey.currentContext;
+      if (context != null) {
+        context.read<AuthProvider>().logout();
+        showGlobalSnackBar('Your session has expired, please login again');
+      }
+      return;
+    }
+
     log('Unexpected error', error: error, stackTrace: stackTrace);
 
     final isNetworkError = error.toString().contains('SocketException') ||
@@ -54,7 +64,7 @@ void main() {
         isError: false,
       );
     } else {
-      showGlobalSnackBar('Unexpected error, please try again later');
+      showGlobalSnackBar(error.toString());
     }
   });
 }
@@ -84,8 +94,8 @@ void initApp() {
   );
 
   final authService = AuthService(
+    baseUrl: dotenv.env['TOKI_API_URL']!,
     tokenRepository: tokenRepository,
-    apiClient: apiClient,
   );
   final mealService = PlannedMealService(apiClient: apiClient);
   final recipeService = RecipeService(apiClient: apiClient);
